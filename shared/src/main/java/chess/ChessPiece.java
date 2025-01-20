@@ -54,7 +54,12 @@ public class ChessPiece {
      */
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
         PieceMovesCalculator movesCalculator = switch (type) {
+            case KING -> new KingMovesCalculator();
+            //case QUEEN -> ;
             case BISHOP -> new BishopMovesCalculator();
+//            case KNIGHT -> ;
+//            case ROOK -> ;
+//            case PAWN -> ;
             default -> throw new IllegalArgumentException("Wrong type: " + type);
         };
 

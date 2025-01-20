@@ -28,7 +28,7 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
                     currentPosition = new ChessPosition(currentPosition.getRow() + 1, currentPosition.getColumn() - 1);
                 }
 
-                //Exit loop if the position is invalid or occupied by the same team
+                //Exit loop if the position is not in bounds or is occupied by the same team
                 if (!currentPosition.isInBounds()) {
                     break; //break if current position is not in bounds
                 }
