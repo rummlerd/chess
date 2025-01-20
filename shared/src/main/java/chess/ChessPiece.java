@@ -57,7 +57,7 @@ public class ChessPiece {
             case KING -> new KingMovesCalculator();
             case QUEEN -> new QueenMovesCalculator();
             case BISHOP -> new BishopMovesCalculator();
-//            case KNIGHT -> ;
+            case KNIGHT -> new KnightMovesCalculator();
             case ROOK -> new RookMovesCalculator();
 //            case PAWN -> ;
             default -> throw new IllegalArgumentException("Wrong type: " + type);
