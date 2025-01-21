@@ -59,8 +59,7 @@ public class ChessPiece {
             case BISHOP -> new BishopMovesCalculator();
             case KNIGHT -> new KnightMovesCalculator();
             case ROOK -> new RookMovesCalculator();
-//            case PAWN -> ;
-            default -> throw new IllegalArgumentException("Wrong type: " + type);
+            case PAWN -> new PawnMovesCalculator();
         };
 
         return movesCalculator.pieceMoves(board, myPosition);

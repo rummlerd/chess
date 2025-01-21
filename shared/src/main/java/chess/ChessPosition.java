@@ -34,12 +34,16 @@ public class ChessPosition {
         return col;
     }
 
-    // Converts 1-based row to 0-based index
+    /**
+     * @return converts 1-based row to 0-based index
+     */
     public int getRowIndex() {
         return row - 1;
     }
 
-    // Converts 1-based column to 0-based index
+    /**
+     * @return converts 1-based column to 0-based index
+     */
     public int getColumnIndex() {
         return col - 1;
     }
