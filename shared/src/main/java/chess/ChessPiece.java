@@ -66,6 +66,32 @@ public class ChessPiece {
     }
 
     @Override
+    public String toString() {
+        if (pieceColor == ChessGame.TeamColor.WHITE) {
+            switch (type) {
+                case KING -> { return "K"; }
+                case QUEEN -> { return "Q"; }
+                case BISHOP -> { return "B"; }
+                case KNIGHT -> { return "N"; }
+                case ROOK -> { return "R"; }
+                case PAWN -> { return "P"; }
+            }
+        }
+        else {
+            switch (type) {
+                case KING -> { return "k"; }
+                case QUEEN -> { return "q"; }
+                case BISHOP -> { return "b"; }
+                case KNIGHT -> { return "n"; }
+                case ROOK -> { return "r"; }
+                case PAWN -> { return "p"; }
+            }
+        }
+
+        return "?";
+    }
+
+    @Override
     public boolean equals(Object o) {
         if (o == null || getClass() != o.getClass()) {
             return false;
