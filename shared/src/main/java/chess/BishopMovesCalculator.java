@@ -34,13 +34,13 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
                 }
                 else if (board.getPiece(currentPosition) != null) {
                     if (board.getPiece(currentPosition).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                        validMoves.add(new ChessMove(myPosition, currentPosition, board.getPiece(myPosition).getPieceType()));
+                        validMoves.add(new ChessMove(myPosition, currentPosition, null));
                     }
                     break; //break if occupied
                 }
 
                 //add position to validMoves
-                validMoves.add(new ChessMove(myPosition, currentPosition, board.getPiece(myPosition).getPieceType()));
+                validMoves.add(new ChessMove(myPosition, currentPosition, null));
         }
 
         }

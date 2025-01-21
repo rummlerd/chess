@@ -47,7 +47,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
                         validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.KNIGHT));
                     }
                     else {
-                        validMoves.add(new ChessMove(myPosition, currentPosition, board.getPiece(myPosition).getPieceType()));
+                        validMoves.add(new ChessMove(myPosition, currentPosition, null));
                     }
                 }
             }
@@ -80,7 +80,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
                 validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.KNIGHT));
             }
             else {
-                validMoves.add(new ChessMove(myPosition, currentPosition, board.getPiece(myPosition).getPieceType()));
+                validMoves.add(new ChessMove(myPosition, currentPosition, null));
 
                 //advance two spaces
                 currentPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn());
@@ -97,7 +97,7 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
 
                 //Add move if new position is in bounds and unoccupied
                 if (isInStartingPosition && currentPosition.isInBounds() && board.getPiece(currentPosition) == null) {
-                    validMoves.add(new ChessMove(myPosition, currentPosition, board.getPiece(myPosition).getPieceType()));
+                    validMoves.add(new ChessMove(myPosition, currentPosition, null));
                 }
             }
         }

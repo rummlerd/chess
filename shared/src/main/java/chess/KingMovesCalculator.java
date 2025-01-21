@@ -45,13 +45,13 @@ public class KingMovesCalculator implements PieceMovesCalculator {
             }
             else if (board.getPiece(currentPosition) != null) {
                 if (board.getPiece(currentPosition).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                    validMoves.add(new ChessMove(myPosition, currentPosition, board.getPiece(myPosition).getPieceType()));
+                    validMoves.add(new ChessMove(myPosition, currentPosition, null));
                 }
                 continue;
             }
 
             //add position to validMoves
-            validMoves.add(new ChessMove(myPosition, currentPosition, board.getPiece(myPosition).getPieceType()));
+            validMoves.add(new ChessMove(myPosition, currentPosition, null));
         }
 
         return validMoves;
