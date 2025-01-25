@@ -41,10 +41,9 @@ public class BishopMovesCalculator implements PieceMovesCalculator {
 
                 //add position to validMoves
                 validMoves.add(new ChessMove(myPosition, currentPosition, null));
-        }
+            }
 
         }
-
         return validMoves;
     }
 }
