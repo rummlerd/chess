@@ -1,60 +1,21 @@
 package chess;
 
 import java.util.Collection;
-import java.util.ArrayList;
 
 public class KnightMovesCalculator implements PieceMovesCalculator {
+    private static final int[][] KNIGHT_DIRECTIONS = {
+            {2, 1}, // Up-right
+            {2, -1}, // Up-left
+            {1, 2}, // Right-up
+            {-1, 2}, // Right-down
+            {-2, 1}, // Down-right
+            {-2, -1}, // Down-left
+            {1, -2}, // Left-up
+            {-1, -2} // Left-down
+    };
 
     @Override
     public Collection<ChessMove> pieceMoves(ChessBoard board, ChessPosition myPosition) {
-        Collection<ChessMove> validMoves = new ArrayList<>();
-
-        for (int i = 0; i < 8; i++) {
-            // Reset currentPosition to starting Position
-            ChessPosition currentPosition = new ChessPosition(myPosition.getRow(), myPosition.getColumn());
-
-            //loop through all valid position for each diagonal
-            if (i == 0) {
-                currentPosition = new ChessPosition(currentPosition.getRow() + 2, currentPosition.getColumn() + 1);
-            }
-            else if (i == 1) {
-                currentPosition = new ChessPosition(currentPosition.getRow() + 1, currentPosition.getColumn() + 2);
-            }
-            else if (i == 2) {
-                currentPosition = new ChessPosition(currentPosition.getRow() - 1, currentPosition.getColumn() + 2);
-            }
-            else if (i == 3) {
-                currentPosition = new ChessPosition(currentPosition.getRow() - 2, currentPosition.getColumn() + 1);
-            }
-            else if (i == 4) {
-                currentPosition = new ChessPosition(currentPosition.getRow() - 2, currentPosition.getColumn() - 1);
-            }
-            else if (i == 5) {
-                currentPosition = new ChessPosition(currentPosition.getRow() - 1, currentPosition.getColumn() - 2);
-            }
-            else if (i == 6) {
-                currentPosition = new ChessPosition(currentPosition.getRow() + 1, currentPosition.getColumn() - 2);
-            }
-            else {
-                currentPosition = new ChessPosition(currentPosition.getRow() + 2, currentPosition.getColumn() - 1);
-            }
-
-            //End iteration if the position is not in bounds or is occupied by the same team
-            if (!currentPosition.isInBounds()) {
-                continue;
-            }
-            else if (board.getPiece(currentPosition) != null) {
-                if (board.getPiece(currentPosition).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                    validMoves.add(new ChessMove(myPosition, currentPosition, null));
-                }
-                continue;
-            }
-
-            //add position to validMoves
-            validMoves.add(new ChessMove(myPosition, currentPosition, null));
-        }
-
-        return validMoves;
+        return MoveCalculatorUtils.generateMoves(board, myPosition, KNIGHT_DIRECTIONS, true);
     }
 }
-

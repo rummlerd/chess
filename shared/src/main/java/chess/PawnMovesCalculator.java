@@ -9,81 +9,51 @@ public class PawnMovesCalculator implements PieceMovesCalculator {
         Collection<ChessMove> validMoves = new ArrayList<>();
         ChessPosition currentPosition;
 
-        // iterate twice to check if pawn can capture a piece
-        for (int i = 0; i < 2; i++) {
-            if (board.getPiece(myPosition).getTeamColor() == ChessGame.TeamColor.WHITE) {
-                if (i == 0) {
-                    currentPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() - 1);
-                }
-                else {
-                    currentPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn() + 1);
-                }
-            }
-            else {
-                if (i == 0) {
-                    currentPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() - 1);
-                }
-                else {
-                    currentPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn() + 1);
-                }
-            }
+        // Save piece and color as they are referenced multiple times
+        ChessPiece myPiece = board.getPiece(myPosition);
+        ChessGame.TeamColor myColor = myPiece.getTeamColor();
 
-            //Add move if new position is in bounds and occupied by the other team, handle promotion cases
-            if (currentPosition.isInBounds() && board.getPiece(currentPosition) != null) {
-                if (board.getPiece(currentPosition).getTeamColor() != board.getPiece(myPosition).getTeamColor()) {
-                    //check for promotion
-                    if ((board.getPiece(myPosition).getTeamColor() == ChessGame.TeamColor.WHITE && myPosition.getRow() == 7)
-                            || (board.getPiece(myPosition).getTeamColor() == ChessGame.TeamColor.BLACK && myPosition.getRow() == 2)) {
-                        validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.ROOK));
-                        validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.BISHOP));
-                        validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.KNIGHT));
-                        validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.QUEEN));
-                    } else {
-                        validMoves.add(new ChessMove(myPosition, currentPosition, null));
-                    }
-                }
+        int direction = (myColor == ChessGame.TeamColor.WHITE) ? 1 : -1;  // 1 for white, -1 for black
+
+        // Check if pawn can advance and capture piece to left or right
+        int[][] diagonalAdvances = {{direction, -1}, {direction, 1}};
+        for (int[] diagonalAdvance : diagonalAdvances) {
+            currentPosition = new ChessPosition(myPosition.getRow() + diagonalAdvance[0], myPosition.getColumn() + diagonalAdvance[1]);
+            // Add move if new position is in bounds and occupied by the other team
+            if (currentPosition.isInBounds() && board.getPiece(currentPosition) != null
+                    && board.getPiece(currentPosition).getTeamColor() != myColor) {
+                addMove(validMoves, myPosition, currentPosition, myColor);
             }
         }
 
-        //advance one space
-        if (board.getPiece(myPosition).getTeamColor() == ChessGame.TeamColor.WHITE) {
-            currentPosition = new ChessPosition(myPosition.getRow() + 1, myPosition.getColumn());
-        }
-        else {
-            currentPosition = new ChessPosition(myPosition.getRow() - 1, myPosition.getColumn());
-        }
-
-        //Add move if new position is in bounds and unoccupied, handle promotion cases and advancing two spaces when applicable
+        // Advance one space
+        currentPosition = new ChessPosition(myPosition.getRow() + direction, myPosition.getColumn());
+        // Add move if new position is in bounds and unoccupied
         if (currentPosition.isInBounds() && board.getPiece(currentPosition) == null) {
-            //check for promotion
-            if ((board.getPiece(myPosition).getTeamColor() == ChessGame.TeamColor.WHITE && myPosition.getRow() == 7)
-                    || (board.getPiece(myPosition).getTeamColor() == ChessGame.TeamColor.BLACK && myPosition.getRow() == 2)) {
-                validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.ROOK));
-                validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.BISHOP));
-                validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.KNIGHT));
-                validMoves.add(new ChessMove(myPosition, currentPosition, ChessPiece.PieceType.QUEEN));
-            } else {
+            addMove(validMoves, myPosition, currentPosition, myColor);
+
+            // Advance two spaces
+            currentPosition = new ChessPosition(myPosition.getRow() + 2 * direction, myPosition.getColumn());
+            // Add move if new position is in bounds, moving from starting position, and unoccupied
+            if (myPosition.getRow() == ((myColor == ChessGame.TeamColor.WHITE) ? 2 : 7)
+                    && currentPosition.isInBounds() && board.getPiece(currentPosition) == null) {
                 validMoves.add(new ChessMove(myPosition, currentPosition, null));
-
-                //advance two spaces
-                boolean isInStartingPosition = false;
-
-                if (myPosition.getRow() == 2 && board.getPiece(myPosition).getTeamColor() == ChessGame.TeamColor.WHITE) {
-                    currentPosition = new ChessPosition(myPosition.getRow() + 2, myPosition.getColumn());
-                    isInStartingPosition = true;
-                }
-                else if (myPosition.getRow() == 7 && board.getPiece(myPosition).getTeamColor() == ChessGame.TeamColor.BLACK) {
-                    currentPosition = new ChessPosition(myPosition.getRow() - 2, myPosition.getColumn());
-                    isInStartingPosition = true;
-                }
-
-                //Add move if new position is in bounds and unoccupied
-                if (isInStartingPosition && currentPosition.isInBounds() && board.getPiece(currentPosition) == null) {
-                    validMoves.add(new ChessMove(myPosition, currentPosition, null));
-                }
             }
         }
 
         return validMoves;
+    }
+
+    // Method to handle promotion cases in a single spot to eliminate duplicate code
+    private void addMove(Collection<ChessMove> moves, ChessPosition startPosition, ChessPosition endPosition, ChessGame.TeamColor color) {
+        // Check for promotion
+        if (endPosition.getRow() == ((color == ChessGame.TeamColor.WHITE) ? 8 : 1)) {
+            moves.add(new ChessMove(startPosition, endPosition, ChessPiece.PieceType.ROOK));
+            moves.add(new ChessMove(startPosition, endPosition, ChessPiece.PieceType.BISHOP));
+            moves.add(new ChessMove(startPosition, endPosition, ChessPiece.PieceType.KNIGHT));
+            moves.add(new ChessMove(startPosition, endPosition, ChessPiece.PieceType.QUEEN));
+        } else {
+            moves.add(new ChessMove(startPosition, endPosition, null));
+        }
     }
 }
