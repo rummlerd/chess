@@ -16,7 +16,7 @@ public class MoveCalculatorUtils {
 
             while (true) {
                 // Break if out of bounds
-                if (!currentPosition.isInBounds()) break;
+                if (!currentPosition.isInBounds()) { break; }
 
                 // Add move if occupied by opponent, otherwise break
                 if (board.getPiece(currentPosition) != null) {
@@ -30,7 +30,7 @@ public class MoveCalculatorUtils {
                 validMoves.add(new ChessMove(startPosition, currentPosition, null));
 
                 // If single-step piece (King/Knight), break after first move
-                if (singleStep) break;
+                if (singleStep) { break; }
 
                 // Continue for multi-step pieces (Queen, Rook, Bishop)
                 currentPosition = new ChessPosition(
