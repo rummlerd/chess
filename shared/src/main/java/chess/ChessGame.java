@@ -50,7 +50,20 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        throw new RuntimeException("Not implemented");
+        if (board.getPiece(startPosition) == null) { return null; }
+        ChessPiece myPiece = board.getPiece(startPosition);
+        TeamColor myColor = myPiece.getTeamColor();
+        Collection<ChessMove> validMoves = myPiece.pieceMoves(board, startPosition);
+        for (ChessMove move : validMoves) {
+            if (isInCheck(myColor)) {
+                //FIXME tag move to be removed from validMoves
+            } else if (isInCheckmate(myColor)) {
+                //FIXME tag move to be removed from validMoves
+            }
+        }
+        //FIXME remove tagged moves from validMoves
+
+        return validMoves;
     }
 
     /**
@@ -60,7 +73,10 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
-        throw new RuntimeException("Not implemented");
+        if (board.getPiece(move.getStartPosition()).getTeamColor() != team) {
+            //FIXME throw InvalidMoveException;
+            }
+
     }
 
     /**
