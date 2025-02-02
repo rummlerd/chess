@@ -12,11 +12,15 @@ import java.util.Collection;
 public class ChessGame {
     private TeamColor team;
     private ChessBoard board;
+    private ChessMove lastMove;
+    private boolean enPassantValid;
 
     public ChessGame() {
         team = TeamColor.WHITE;
         board = new ChessBoard();
         board.resetBoard();
+        lastMove = null;
+        enPassantValid = false;
     }
 
     /**
@@ -71,6 +75,23 @@ public class ChessGame {
                 throw new RuntimeException(e);
             }
         }
+        // Check for enPassant possibility
+        if (lastMove != null) { // Can not be first move of the game
+            ChessPosition lastStartPos = lastMove.getStartPosition();
+            ChessPosition lastEndPos = lastMove.getEndPosition();
+            ChessPiece lastPiece = board.getPiece(lastEndPos);
+            ChessPiece newPiece = board.getPiece(startPosition);
+
+            if (lastPiece.getPieceType() == ChessPiece.PieceType.PAWN && newPiece.getPieceType() == ChessPiece.PieceType.PAWN && // Both pieces must be pawns
+                    Math.abs(lastStartPos.getRow() - lastEndPos.getRow()) == 2 && // Previous move must have been a pawn advancing two squares
+                    startPosition.getRow() == lastEndPos.getRow() && // Pawns must be on the same row
+                    (startPosition.getColumn() == lastEndPos.getColumn() - 1 || // Pawns must be in adjacent columns
+                            startPosition.getColumn() == lastEndPos.getColumn() + 1)) {
+                int direction = (newPiece.getTeamColor() == TeamColor.WHITE) ? 1 : -1; // Advance one row up for white, one down for black
+                enPassantValid = true;
+                validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow() + direction, lastEndPos.getColumn()), null)); // Add the valid en passant move
+            }
+        }
 
         return validMoves;
     }
@@ -83,6 +104,7 @@ public class ChessGame {
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
+        ChessPosition endPosition = move.getEndPosition();
         if (board.getPiece(startPosition) == null) {
             throw new InvalidMoveException("No piece at starting location");
         }
@@ -92,7 +114,15 @@ public class ChessGame {
         Collection<ChessMove> validMoves = validMoves(startPosition);
         if (validMoves != null) {
             if (validMoves.contains(move)) {
+                if (enPassantValid &&
+                        board.getPiece(startPosition).getPieceType() == ChessPiece.PieceType.PAWN &&
+                        board.getPiece(endPosition) == null &&
+                        startPosition.getColumn() - endPosition.getColumn() != 0) {
+                    board.removePiece(new ChessPosition(startPosition.getRow(), endPosition.getColumn()));
+                }
                 board.makeMove(move);
+                enPassantValid = false;
+                lastMove = move;
                 team = (team == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
                 return;
             }
