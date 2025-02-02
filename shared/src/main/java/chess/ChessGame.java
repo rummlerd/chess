@@ -52,19 +52,23 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         if (board.getPiece(startPosition) == null) { return null; }
-        Collection<ChessMove> possibleMoves = board.getPiece(startPosition).pieceMoves(board, startPosition);
+        ChessPiece myPiece = board.getPiece(startPosition);
+        TeamColor teamColor = myPiece.getTeamColor();
+        Collection<ChessMove> possibleMoves = myPiece.pieceMoves(board, startPosition);
         Collection<ChessMove> validMoves = new ArrayList<>();
 
         for (ChessMove move : possibleMoves) {
             try {
                 // Create a copy of the board before trying the move
-                ChessBoard copiedBoard = (ChessBoard) board.clone();
-
-                if (copiedBoard.makeMove(move) != null) {
+                ChessBoard copiedBoard = board.clone();
+                ChessGame copiedGame = new ChessGame();
+                copiedGame.setBoard(copiedBoard);
+                copiedBoard.makeMove(move);
+                if (!copiedGame.isInCheck(teamColor)) {
                     validMoves.add(move);
                 }
             } catch (CloneNotSupportedException e){
-
+                throw new RuntimeException(e);
             }
         }
 
@@ -120,13 +124,49 @@ public class ChessGame {
     public boolean isInCheckmate(TeamColor teamColor) {
         if (!isInCheck(teamColor)) {
             return false;
-        } else {
-            ChessPosition kingPosition = board.findKing(teamColor);
-            ChessPiece king = board.getPiece(kingPosition);
-            Collection<ChessMove> kingMoves = king.pieceMoves(board, kingPosition);
-            for (ChessMove kingMove : kingMoves) {
-                if (!isInCheck(teamColor)) {
+        }
+        // Check if King can escape checkmate by moving
+        ChessPosition kingPosition = board.findKing(teamColor);
+        ChessPiece king = board.getPiece(kingPosition);
+        Collection<ChessMove> kingMoves = king.pieceMoves(board, kingPosition);
+        for (ChessMove kingMove : kingMoves) {
+            try {
+                ChessBoard copiedBoard = board.clone();
+                ChessGame copiedGame = new ChessGame();
+                copiedGame.setBoard(copiedBoard);
+                copiedBoard.makeMove(kingMove);
+                if (!copiedGame.isInCheck(teamColor)) {
                     return false;
+                }
+            } catch (CloneNotSupportedException e) {
+                throw new RuntimeException(e);
+            }
+        }
+        // Check if by moving another piece, checkmate can be escaped
+        for (int i = 1; i < 9; i++) {
+            for (int j = 1; j < 9; j++) {
+                ChessPosition position = new ChessPosition(i, j);
+                ChessPiece myPiece = board.getPiece(position);
+
+                if (myPiece != null) {
+                    if (myPiece.getTeamColor() == teamColor) {
+                        Collection<ChessMove> possibleMoves = myPiece.pieceMoves(board, position);
+
+                        for (ChessMove move : possibleMoves) {
+                            try {
+                                ChessBoard copiedBoard = board.clone();
+                                ChessGame copiedGame = new ChessGame();
+                                copiedGame.setBoard(copiedBoard);
+                                copiedBoard.makeMove(move);
+
+                                if (!copiedGame.isInCheck(teamColor)) {
+                                    return false; // Checkmate can be escaped
+                                }
+                            } catch (CloneNotSupportedException e) {
+                                throw new RuntimeException(e);
+                            }
+                        }
+                    }
                 }
             }
         }

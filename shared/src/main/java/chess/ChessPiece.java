@@ -9,7 +9,7 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessPiece {
+public class ChessPiece implements Cloneable {
     private final ChessGame.TeamColor pieceColor;
     private final ChessPiece.PieceType type;
 
@@ -105,7 +105,7 @@ public class ChessPiece {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public ChessPiece clone() throws CloneNotSupportedException {
         return (ChessPiece) super.clone(); // Shallow clone
         // No need to deep clone pieceColor or type because they are enums
     }

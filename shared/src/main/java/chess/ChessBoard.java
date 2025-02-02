@@ -10,7 +10,7 @@ import java.util.Objects;
  * signature of the existing methods.
  */
 public class ChessBoard implements Cloneable {
-    private final ChessPiece[][] squares = new ChessPiece[8][8];
+    private ChessPiece[][] squares = new ChessPiece[8][8];
 
     public ChessBoard() {
         
@@ -75,26 +75,23 @@ public class ChessBoard implements Cloneable {
         }
     }
 
-    public ChessMove makeMove(ChessMove move) {
+    public void makeMove(ChessMove move) {
         ChessPosition startPosition = move.getStartPosition();
         ChessPosition endPosition = move.getEndPosition();
         ChessPiece.PieceType promotionType = move.getPromotionPiece();
         ChessPiece myPiece = getPiece(startPosition);
+        if (myPiece == null) {
+            throw new IllegalStateException("No piece found at " + startPosition);
+        }
         ChessGame.TeamColor myColor = myPiece.getTeamColor();
 
         if (promotionType == null) {
             addPiece(endPosition, myPiece);
         } else {
-            addPiece(endPosition, new ChessPiece(myPiece.getTeamColor(), promotionType));
+            addPiece(endPosition, new ChessPiece(myColor, promotionType));
         }
 
         removePiece(startPosition);
-
-        if (true) { //FIXME Return null if move puts king in check or checkmate
-            return null;
-        } else {
-            return move;
-        }
     }
 
     public void removePiece(ChessPosition position) {
@@ -154,19 +151,20 @@ public class ChessBoard implements Cloneable {
     }
 
     @Override
-    public Object clone() throws CloneNotSupportedException {
+    public ChessBoard clone() throws CloneNotSupportedException {
         ChessBoard clone = (ChessBoard) super.clone(); // Shallow copy
 
-        for (int i = 1; i < 9; i++) {
-            for (int j = 1; j < 9; j++) {
-                ChessPosition position = new ChessPosition(i,j);
-                ChessPiece piece = getPiece(position);
-                if (piece != null) {
-                    clone.addPiece(position, (ChessPiece) piece.clone());
+        ChessPiece[][] cloneSquares = new ChessPiece[8][8];
+        for (int i = 0; i < 8; i++) {
+            for (int j = 0; j < 8; j++) {
+                if (squares[i][j] != null) {
+                    cloneSquares[i][j] = squares[i][j].clone();
                 }
             }
         }
-
+        clone.squares = cloneSquares;
         return clone;
     }
+
+
 }
