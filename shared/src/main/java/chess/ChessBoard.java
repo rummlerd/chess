@@ -9,7 +9,7 @@ import java.util.Objects;
  * Note: You can add to this class, but you may not alter
  * signature of the existing methods.
  */
-public class ChessBoard {
+public class ChessBoard implements Cloneable {
     private final ChessPiece[][] squares = new ChessPiece[8][8];
 
     public ChessBoard() {
@@ -75,6 +75,51 @@ public class ChessBoard {
         }
     }
 
+    public ChessMove makeMove(ChessMove move) {
+        ChessPosition startPosition = move.getStartPosition();
+        ChessPosition endPosition = move.getEndPosition();
+        ChessPiece.PieceType promotionType = move.getPromotionPiece();
+        ChessPiece myPiece = getPiece(startPosition);
+        ChessGame.TeamColor myColor = myPiece.getTeamColor();
+
+        if (promotionType == null) {
+            addPiece(endPosition, myPiece);
+        } else {
+            addPiece(endPosition, new ChessPiece(myPiece.getTeamColor(), promotionType));
+        }
+
+        removePiece(startPosition);
+
+        if (true) { //FIXME Return null if move puts king in check or checkmate
+            return null;
+        } else {
+            return move;
+        }
+    }
+
+    public void removePiece(ChessPosition position) {
+        squares[position.getRowIndex()][position.getColumnIndex()] = null;
+    }
+
+    /**
+     * Finds the king of a given team
+     * @param teamColor color of team
+     * @return position of king
+     */
+    public ChessPosition findKing(ChessGame.TeamColor teamColor) {
+        for (int i = 1; i < 9; i++) {
+            for (int j = 1; j < 9; j++) {
+                ChessPosition position = new ChessPosition(i, j);
+                if (getPiece(position) != null) {
+                    if (getPiece(position).getPieceType() == ChessPiece.PieceType.KING && getPiece(position).getTeamColor() == teamColor) {
+                        return position;
+                    }
+                }
+            }
+        }
+        return null;
+    }
+
     @Override
     public String toString() {
         var builder = new StringBuilder();
@@ -106,5 +151,22 @@ public class ChessBoard {
     @Override
     public int hashCode() {
         return Arrays.deepHashCode(squares);
+    }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        ChessBoard clone = (ChessBoard) super.clone(); // Shallow copy
+
+        for (int i = 1; i < 9; i++) {
+            for (int j = 1; j < 9; j++) {
+                ChessPosition position = new ChessPosition(i,j);
+                ChessPiece piece = getPiece(position);
+                if (piece != null) {
+                    clone.addPiece(position, (ChessPiece) piece.clone());
+                }
+            }
+        }
+
+        return clone;
     }
 }

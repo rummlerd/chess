@@ -103,4 +103,10 @@ public class ChessPiece {
     public int hashCode() {
         return Objects.hash(pieceColor, type);
     }
+
+    @Override
+    public Object clone() throws CloneNotSupportedException {
+        return (ChessPiece) super.clone(); // Shallow clone
+        // No need to deep clone pieceColor or type because they are enums
+    }
 }
