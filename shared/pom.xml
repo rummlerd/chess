@@ -13,6 +13,12 @@
 
     <packaging>jar</packaging>
 
+    <dependency>
+        <groupld>com.google.code.gson</groupld>
+        <artifactld>gson</artifactld>
+        <version>2.10.1</version>
+    </dependency>
+
     <build>
         <finalName>shared</finalName>
         <plugins>
