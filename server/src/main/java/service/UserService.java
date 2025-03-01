@@ -12,8 +12,9 @@ public class UserService {
 /*
     public RegisterResult register(RegisterRequest registerRequest) {
         try {
-            dataAccess.createUser(new UserData(registerRequest.username(), registerRequest.password()));
-            return new RegisterResult("User registered successfully");
+            dataAccess.createUser(new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email()));
+            //FIXME return username and authToken
+            return new RegisterResult();
         } catch (IllegalArgumentException e) {
             return new RegisterResult("Error: " + e.getMessage());
         }
