@@ -2,6 +2,8 @@ package server;
 
 import controller.UserController;
 import dataaccess.DataAccess;
+import spark.Request;
+import spark.Response;
 import spark.Spark;
 
 public class ChessServer {
@@ -10,9 +12,18 @@ public class ChessServer {
 
         Spark.staticFiles.location("public");
 
-        //FIXME add routes Spark.post(...) etc.
         UserController userController = new UserController(dataAccess);
         userController.setupRoutes();
+        Spark.delete("/db", (req, res) -> {
+            try {
+                dataAccess.clear();
+                res.status(200);
+                return "{}";
+            } catch (Exception e) {
+                res.status(500);
+                return "{\"message\": \"Error: " + e.getMessage() + "\"}";
+            }
+        });
 
         Spark.awaitInitialization();
         System.out.println("Server running on http://localhost:" + port);
