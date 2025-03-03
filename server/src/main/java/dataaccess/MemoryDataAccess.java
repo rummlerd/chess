@@ -4,6 +4,7 @@ import java.util.*;
 import java.util.UUID;
 
 import chess.ChessGame;
+import controller.GameResult;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -69,6 +70,21 @@ public class MemoryDataAccess implements DataAccess {
         int gameID = 1000 + random.nextInt(9000); // Generates 1000 to 9999
         games.put(gameID, new GameData(gameID, null, null, gameName, new ChessGame()));
         return gameID;
+    }
+
+    @Override
+    public List<GameResult> getAllGames(String authToken) {
+        checkAuthToken(authToken);
+        List<GameResult> gameResults = new ArrayList<>();
+        for (GameData gameData : games.values()) {
+            gameResults.add(new GameResult(
+                    gameData.gameID(),
+                    gameData.whiteUsername(),
+                    gameData.blackUsername(),
+                    gameData.gameName()
+            ));
+        }
+        return gameResults;
     }
 
     private void checkAuthToken(String authToken) throws IllegalArgumentException {

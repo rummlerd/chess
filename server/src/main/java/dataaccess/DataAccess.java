@@ -2,6 +2,9 @@ package dataaccess;
 
 import model.AuthData;
 import model.UserData;
+import model.GameData;
+
+import java.util.List;
 
 public interface DataAccess {
     /**
@@ -43,10 +46,17 @@ public interface DataAccess {
     void deleteAuth(String authToken) throws IllegalArgumentException;
 
     /**
-     * @param authToken authorizationt that user is signed in
+     * @param authToken authorization that user is signed in
      * @param gameName desired name of game from request body
      * @return gameID
      * @throws IllegalArgumentException
      */
     int createGame(String authToken, String gameName) throws IllegalArgumentException;
+
+    /**
+     * @param authToken authorization that the user is signed in
+     * @return list of all saved games
+     * @throws IllegalArgumentException unauthorized error
+     */
+    List<controller.GameResult> getAllGames(String authToken) throws IllegalArgumentException;
 }
