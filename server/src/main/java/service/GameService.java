@@ -16,7 +16,7 @@ public class GameService {
         return dataAccess.createGame(authToken, gameName);
     }
 
-    public List<controller.GameResult> getAllGames(String authToken) {
+    public List<httpmessages.GameResult> getAllGames(String authToken) {
         return dataAccess.getAllGames(authToken);
     }
 

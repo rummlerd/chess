@@ -51,7 +51,7 @@ public interface DataAccess {
      * @param authToken authorization that user is signed in
      * @param gameName desired name of game from request body
      * @return gameID
-     * @throws IllegalArgumentException
+     * @throws IllegalArgumentException unauthorized
      */
     int createGame(String authToken, String gameName) throws IllegalArgumentException;
 
@@ -68,7 +68,7 @@ public interface DataAccess {
      * @return list of all saved games
      * @throws IllegalArgumentException unauthorized error
      */
-    List<controller.GameResult> getAllGames(String authToken) throws IllegalArgumentException;
+    List<httpmessages.GameResult> getAllGames(String authToken) throws IllegalArgumentException;
 
     /**
      * @param authToken authorization that the user is signed in

@@ -1,4 +1,4 @@
-package controller;
+package httpmessages;
 
 import chess.ChessGame.TeamColor;
 

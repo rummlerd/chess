@@ -1,10 +1,6 @@
 package server;
 
-import controller.GameController;
-import controller.UserController;
 import dataaccess.DataAccess;
-import spark.Request;
-import spark.Response;
 import spark.Spark;
 
 public class ChessServer {
@@ -13,20 +9,13 @@ public class ChessServer {
 
         Spark.staticFiles.location("public");
 
-        UserController userController = new UserController(dataAccess);
-        GameController gameController = new GameController(dataAccess);
-        userController.setupRoutes();
-        gameController.setupRoutes();
-        Spark.delete("/db", (req, res) -> {
-            try {
-                dataAccess.clear();
-                res.status(200);
-                return "{}";
-            } catch (Exception e) {
-                res.status(500);
-                return "{\"message\": \"Error: " + e.getMessage() + "\"}";
-            }
+        Spark.before((req, res) -> {
+            res.type("application/json");  // Set content type globally to JSON
+            res.status(200); // Default response status, updated only if error is thrown
         });
+
+        RouteManager routeManager = new RouteManager(dataAccess);
+        routeManager.setupRoutes();
 
         Spark.awaitInitialization();
         System.out.println("Server running on http://localhost:" + port);
@@ -35,10 +24,6 @@ public class ChessServer {
 
     public int port() {
         return Spark.port();
-    }
-
-    public void stop() {
-        Spark.stop();
     }
 }
 

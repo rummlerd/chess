@@ -4,7 +4,7 @@ import java.util.*;
 import java.util.UUID;
 
 import chess.ChessGame;
-import controller.GameResult;
+import httpmessages.GameResult;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -31,19 +31,17 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public UserData getUser(String username) {
+    public UserData getUser(String username) throws IllegalArgumentException {
         UserData user = users.get(username);
         if (user == null) {
-            throw new IllegalArgumentException("User does not exist");
+            throw new IllegalArgumentException("user not found");
         }
         return user;
     }
 
     @Override
     public String createAuth(String username) {
-        if (!users.containsKey(username)) {
-            throw new IllegalArgumentException("User does not exist");
-        }
+        getUser(username); // getUser will throw error if username not found in memory
 
         String authToken = UUID.randomUUID().toString();
         authTokens.put(authToken, new AuthData(authToken, username));
