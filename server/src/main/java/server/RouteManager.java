@@ -3,6 +3,7 @@ package server;
 import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dataaccess.DataAccessException;
 import httpmessages.GameRequest;
 import httpmessages.GameResult;
 import dataaccess.DataAccess;
@@ -58,19 +59,19 @@ public class RouteManager {
         return "{}";
     }
 
-    private Object registerUser(Request req, Response res) throws IllegalArgumentException {
+    private Object registerUser(Request req, Response res) throws DataAccessException {
         UserData user = gson.fromJson(req.body(), UserData.class);
 
         // Validate that all necessary fields were input
         if (user.username() == null || user.password() == null || user.email() == null) {
-            throw new IllegalArgumentException("bad request");
+            throw new DataAccessException("bad request");
         }
 
         AuthData result = userService.register(user);
         return gson.toJson(result);
     }
 
-    private Object login(Request req, Response res) {
+    private Object login(Request req, Response res) throws DataAccessException {
         // Deserialize request as a UserData object, just ignore the email field
         UserData user = gson.fromJson(req.body(), UserData.class);
 
@@ -78,34 +79,34 @@ public class RouteManager {
         return gson.toJson(result);
     }
 
-    private Object logout(Request req, Response res) {
+    private Object logout(Request req, Response res) throws DataAccessException {
         String authToken = req.headers("authorization");
 
         userService.logout(authToken);
         return "{}";
     }
 
-    private Object listGames(Request req, Response res) {
+    private Object listGames(Request req, Response res) throws DataAccessException {
         String authToken = req.headers("authorization");
 
         List<GameResult> games = gameService.getAllGames(authToken);
         return gson.toJson(Map.of("games", games));
     }
 
-    private Object createGame(Request req, Response res) throws IllegalArgumentException {
+    private Object createGame(Request req, Response res) throws DataAccessException {
         String authToken = req.headers("authorization");
         String gameName = (String) gson.fromJson(req.body(), Map.class).get("gameName");
 
         // Validate that a gameName was input
         if (gameName == null) {
-            throw new IllegalArgumentException("bad request");
+            throw new DataAccessException("bad request");
         }
 
         int result = gameService.createGame(authToken, gameName);
         return gson.toJson(Map.of("gameID", result));
     }
 
-    private Object joinGame(Request req, Response res) throws IllegalArgumentException {
+    private Object joinGame(Request req, Response res) throws DataAccessException {
         String authToken = req.headers("authorization");
         GameRequest joinRequest = gson.fromJson(req.body(), GameRequest.class);
         ChessGame.TeamColor playerColor = joinRequest.getPlayerColor();
@@ -113,7 +114,7 @@ public class RouteManager {
 
         // Validate input (gameID must not be null)
         if (playerColor == null || gameID == 0) {
-            throw new IllegalArgumentException("bad request");
+            throw new DataAccessException("bad request");
         }
 
         gameService.joinGame(authToken, playerColor, gameID);

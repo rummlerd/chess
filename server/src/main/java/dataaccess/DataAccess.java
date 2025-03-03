@@ -17,64 +17,64 @@ public interface DataAccess {
      * Creates a new user. Throws a 403 already taken error if user already exists
      * @param user info to be saved in new user
      */
-    void createUser(UserData user) throws IllegalArgumentException;
+    void createUser(UserData user) throws DataAccessException;
 
     /**
      * Returns UserData if user exists, returns null if no user exists
      * @param username of user to be retrieved
      * @return UserData
      */
-    UserData getUser(String username) throws IllegalArgumentException;
+    UserData getUser(String username) throws DataAccessException;
 
     /**
      * Create a new authorization. Call after every login or registration. Returns an authToken which can be sent to the client for further actions
      * @param username associated with new authToken
      * @return authToken
      */
-    String createAuth(String username) throws IllegalArgumentException;
+    String createAuth(String username) throws DataAccessException;
 
     /**
      * Retrieve an authorization given an authToken, throws an 401 unauthorized error if authToken not found
      * @param authToken authorization proof
      * @return AuthData
-     * @throws IllegalArgumentException "unauthorized" if the authToken does not exist
+     * @throws DataAccessException "unauthorized" if the authToken does not exist
      */
-    AuthData getAuth(String authToken) throws IllegalArgumentException;
+    AuthData getAuth(String authToken) throws DataAccessException;
 
     /**
      * Deletes the authToken of a user who wishes to sign off
      * @param authToken authorization of user logging off
      */
-    void deleteAuth(String authToken) throws IllegalArgumentException;
+    void deleteAuth(String authToken) throws DataAccessException;
 
     /**
      * @param authToken authorization that user is signed in
      * @param gameName desired name of game from request body
      * @return gameID
-     * @throws IllegalArgumentException unauthorized
+     * @throws DataAccessException unauthorized
      */
-    int createGame(String authToken, String gameName) throws IllegalArgumentException;
+    int createGame(String authToken, String gameName) throws DataAccessException;
 
     /**
      * Retrieves a specified game
      * @param gameID ID of desired game
      * @return gameData
-     * @throws IllegalArgumentException game not found
+     * @throws DataAccessException game not found
      */
-    GameData getGame(int gameID) throws IllegalArgumentException;
+    GameData getGame(int gameID) throws DataAccessException;
 
     /**
      * @param authToken authorization that the user is signed in
      * @return list of all saved games
-     * @throws IllegalArgumentException unauthorized error
+     * @throws DataAccessException unauthorized error
      */
-    List<httpmessages.GameResult> getAllGames(String authToken) throws IllegalArgumentException;
+    List<httpmessages.GameResult> getAllGames(String authToken) throws DataAccessException;
 
     /**
      * @param authToken authorization that the user is signed in
      * @param playerColor color of team user wishes to become
      * @param gameID game user wishes to join
-     * @throws IllegalArgumentException 401 unauthorized, 403 already taken, 500 game not found
+     * @throws DataAccessException 401 unauthorized, 403 already taken, 500 game not found
      */
-    void addUser(String authToken, ChessGame.TeamColor playerColor, int gameID) throws IllegalArgumentException;
+    void addUser(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException;
 }

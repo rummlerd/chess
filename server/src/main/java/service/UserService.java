@@ -1,6 +1,7 @@
 package service;
 
 import dataaccess.DataAccess;
+import dataaccess.DataAccessException;
 import model.UserData;
 import model.AuthData;
 
@@ -11,22 +12,22 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
-    public AuthData register(UserData registerRequest) {
+    public AuthData register(UserData registerRequest) throws DataAccessException {
         String username = registerRequest.username();
         dataAccess.createUser(registerRequest);
         return new AuthData(dataAccess.createAuth(username), username);
     }
 
-    public AuthData login(UserData loginRequest) throws IllegalArgumentException {
+    public AuthData login(UserData loginRequest) throws DataAccessException {
         String username = loginRequest.username();
         UserData user = dataAccess.getUser(username);
         if (user.password().equals(loginRequest.password())) {
             return new AuthData(dataAccess.createAuth(username), username);
         }
-        throw new IllegalArgumentException("unauthorized");
+        throw new DataAccessException("unauthorized");
     }
 
-    public void logout(String authToken) {
+    public void logout(String authToken) throws DataAccessException {
         dataAccess.deleteAuth(authToken);
     }
 }

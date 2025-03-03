@@ -23,24 +23,24 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void createUser(UserData user) {
+    public void createUser(UserData user) throws DataAccessException {
         if (users.containsKey(user.username())) {
-            throw new IllegalArgumentException("already taken");
+            throw new DataAccessException("already taken");
         }
         users.put(user.username(), user);
     }
 
     @Override
-    public UserData getUser(String username) throws IllegalArgumentException {
+    public UserData getUser(String username) throws DataAccessException {
         UserData user = users.get(username);
         if (user == null) {
-            throw new IllegalArgumentException("user not found");
+            throw new DataAccessException("user not found");
         }
         return user;
     }
 
     @Override
-    public String createAuth(String username) {
+    public String createAuth(String username) throws DataAccessException {
         getUser(username); // getUser will throw error if username not found in memory
 
         String authToken = UUID.randomUUID().toString();
@@ -50,22 +50,22 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public AuthData getAuth(String authToken) throws IllegalArgumentException {
+    public AuthData getAuth(String authToken) throws DataAccessException {
         AuthData auth = authTokens.get(authToken);
         if (auth == null) {
-            throw new IllegalArgumentException("unauthorized");
+            throw new DataAccessException("unauthorized");
         }
         return auth;
     }
 
     @Override
-    public void deleteAuth(String authToken) {
+    public void deleteAuth(String authToken) throws DataAccessException {
         getAuth(authToken);
         authTokens.remove(authToken);
     }
 
     @Override
-    public int createGame(String authToken, String gameName) {
+    public int createGame(String authToken, String gameName) throws DataAccessException {
         getAuth(authToken);
         Random random = new Random();
         int gameID = 1000 + random.nextInt(9000); // Generates 1000 to 9999
@@ -74,16 +74,16 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public GameData getGame(int gameID) {
+    public GameData getGame(int gameID) throws DataAccessException {
         GameData game = games.get(gameID);
         if (game == null) {
-            throw new IllegalArgumentException("game not found");
+            throw new DataAccessException("game not found");
         }
         return game;
     }
 
     @Override
-    public List<GameResult> getAllGames(String authToken) {
+    public List<GameResult> getAllGames(String authToken) throws DataAccessException {
         getAuth(authToken);
         List<GameResult> gameResults = new ArrayList<>();
         for (GameData gameData : games.values()) {
@@ -98,7 +98,7 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void addUser(String authToken, ChessGame.TeamColor playerColor, int gameID) {
+    public void addUser(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
         AuthData authData = getAuth(authToken);
         GameData game = getGame(gameID);
         if (playerColor == ChessGame.TeamColor.WHITE && game.whiteUsername() == null) {
@@ -106,7 +106,7 @@ public class MemoryDataAccess implements DataAccess {
         } else if (playerColor == ChessGame.TeamColor.BLACK && game.blackUsername() == null) {
             games.put(gameID, new GameData(gameID, game.whiteUsername(), authData.username(), game.gameName(), game.game()));
         } else {
-            throw new IllegalArgumentException("already taken");
+            throw new DataAccessException("already taken");
         }
     }
 }
