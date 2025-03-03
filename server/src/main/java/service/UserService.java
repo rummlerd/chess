@@ -25,4 +25,8 @@ public class UserService {
         }
         throw new IllegalArgumentException("unauthorized");
     }
+
+    public void logout(String authToken) {
+        dataAccess.deleteAuth(authToken);
+    }
 }

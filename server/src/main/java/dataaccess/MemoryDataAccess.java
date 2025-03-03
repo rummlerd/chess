@@ -3,6 +3,7 @@ package dataaccess;
 import java.util.*;
 import java.util.UUID;
 
+import chess.ChessGame;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -10,7 +11,7 @@ import model.UserData;
 public class MemoryDataAccess implements DataAccess {
     private final Map<String, UserData> users = new HashMap<>();
     private final Map<String, AuthData> authTokens = new HashMap<>();
-    private final Map<String, GameData> games = new HashMap<>();
+    private final Map<Integer, GameData> games = new HashMap<>();
 
 
     @Override
@@ -51,10 +52,29 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String authToken) {
+        checkAuthToken(authToken);
+        return authTokens.get(authToken);
+    }
+
+    @Override
+    public void deleteAuth(String authToken) {
+        checkAuthToken(authToken);
+        authTokens.remove(authToken);
+    }
+
+    @Override
+    public int createGame(String authToken, String gameName) {
+        checkAuthToken(authToken);
+        Random random = new Random();
+        int gameID = 1000 + random.nextInt(9000); // Generates 1000 to 9999
+        games.put(gameID, new GameData(gameID, null, null, gameName, new ChessGame()));
+        return gameID;
+    }
+
+    private void checkAuthToken(String authToken) throws IllegalArgumentException {
         AuthData auth = authTokens.get(authToken);
         if (auth == null) {
-            throw new IllegalArgumentException("Unauthorized");
+            throw new IllegalArgumentException("unauthorized");
         }
-        return auth;
     }
 }

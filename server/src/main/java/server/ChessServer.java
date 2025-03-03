@@ -1,5 +1,6 @@
 package server;
 
+import controller.GameController;
 import controller.UserController;
 import dataaccess.DataAccess;
 import spark.Request;
@@ -13,7 +14,9 @@ public class ChessServer {
         Spark.staticFiles.location("public");
 
         UserController userController = new UserController(dataAccess);
+        GameController gameController = new GameController(dataAccess);
         userController.setupRoutes();
+        gameController.setupRoutes();
         Spark.delete("/db", (req, res) -> {
             try {
                 dataAccess.clear();

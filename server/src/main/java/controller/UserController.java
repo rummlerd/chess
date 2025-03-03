@@ -21,6 +21,7 @@ public class UserController {
     public void setupRoutes() {
         Spark.post("/user", this::registerUser);
         Spark.post("/session", this::login);
+        Spark.delete("/session", this::logout);
     }
 
     private Object registerUser(Request req, Response res) {
@@ -29,7 +30,7 @@ public class UserController {
         try {
             UserData registerRequest = gson.fromJson(req.body(), UserData.class);
 
-            // Validate input (missing or null fields)
+            // Validate input (all fields must not be null)
             if (registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
                 res.status(400);
                 return gson.toJson(Map.of("message", "Error: bad request"));
@@ -40,7 +41,7 @@ public class UserController {
             res.status(200);
             return gson.toJson(result);
         } catch (IllegalArgumentException e) {
-            res.status(400);  // Bad request
+            res.status(403);  // already taken
             return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
         } catch (Exception e) {
             res.status(500);  // Internal server error
@@ -58,6 +59,24 @@ public class UserController {
             AuthData result = userService.login(loginRequest);
             res.status(200);
             return gson.toJson(result);
+        } catch (IllegalArgumentException e) {
+            res.status(401);  // unauthorized
+            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
+        } catch (Exception e) {
+            res.status(500);  // Internal server error
+            return gson.toJson(Map.of("message", "Error: unexpected server issue"));
+        }
+    }
+
+    private Object logout(Request req, Response res) {
+        res.type("application/json");
+
+        try {
+            String authToken = req.headers("authorization");
+
+            userService.logout(authToken);
+            res.status(200);
+            return "{}";
         } catch (IllegalArgumentException e) {
             res.status(401);  // unauthorized
             return gson.toJson(Map.of("message", "Error: " + e.getMessage()));

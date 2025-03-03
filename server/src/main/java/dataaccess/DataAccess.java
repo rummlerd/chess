@@ -1,7 +1,6 @@
 package dataaccess;
 
 import model.AuthData;
-import model.GameData;
 import model.UserData;
 
 public interface DataAccess {
@@ -21,7 +20,7 @@ public interface DataAccess {
      * @param username
      * @return UserData
      */
-    UserData getUser(String username);
+    UserData getUser(String username) throws IllegalArgumentException;
 
     /**
      * Create a new authorization. Call after every login or registration. Returns an authToken which can be sent to the client for further actions
@@ -35,5 +34,19 @@ public interface DataAccess {
      * @param authToken
      * @return AuthData
      */
-    AuthData getAuth(String authToken);
+    AuthData getAuth(String authToken) throws IllegalArgumentException;
+
+    /**
+     * Deletes the authToken of a user who wishes to sign off
+     * @param authToken authorization of user logging off
+     */
+    void deleteAuth(String authToken) throws IllegalArgumentException;
+
+    /**
+     * @param authToken authorizationt that user is signed in
+     * @param gameName desired name of game from request body
+     * @return gameID
+     * @throws IllegalArgumentException
+     */
+    int createGame(String authToken, String gameName) throws IllegalArgumentException;
 }
