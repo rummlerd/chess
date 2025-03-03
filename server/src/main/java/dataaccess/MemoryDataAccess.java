@@ -52,20 +52,23 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public AuthData getAuth(String authToken) {
-        checkAuthToken(authToken);
-        return authTokens.get(authToken);
+    public AuthData getAuth(String authToken) throws IllegalArgumentException {
+        AuthData auth = authTokens.get(authToken);
+        if (auth == null) {
+            throw new IllegalArgumentException("unauthorized");
+        }
+        return auth;
     }
 
     @Override
     public void deleteAuth(String authToken) {
-        checkAuthToken(authToken);
+        getAuth(authToken);
         authTokens.remove(authToken);
     }
 
     @Override
     public int createGame(String authToken, String gameName) {
-        checkAuthToken(authToken);
+        getAuth(authToken);
         Random random = new Random();
         int gameID = 1000 + random.nextInt(9000); // Generates 1000 to 9999
         games.put(gameID, new GameData(gameID, null, null, gameName, new ChessGame()));
@@ -73,8 +76,17 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public GameData getGame(int gameID) {
+        GameData game = games.get(gameID);
+        if (game == null) {
+            throw new IllegalArgumentException("game not found");
+        }
+        return game;
+    }
+
+    @Override
     public List<GameResult> getAllGames(String authToken) {
-        checkAuthToken(authToken);
+        getAuth(authToken);
         List<GameResult> gameResults = new ArrayList<>();
         for (GameData gameData : games.values()) {
             gameResults.add(new GameResult(
@@ -87,10 +99,16 @@ public class MemoryDataAccess implements DataAccess {
         return gameResults;
     }
 
-    private void checkAuthToken(String authToken) throws IllegalArgumentException {
-        AuthData auth = authTokens.get(authToken);
-        if (auth == null) {
-            throw new IllegalArgumentException("unauthorized");
+    @Override
+    public void addUser(String authToken, ChessGame.TeamColor playerColor, int gameID) {
+        AuthData authData = getAuth(authToken);
+        GameData game = getGame(gameID);
+        if (playerColor == ChessGame.TeamColor.WHITE && game.whiteUsername() == null) {
+            games.put(gameID, new GameData(gameID, authData.username(), game.blackUsername(), game.gameName(), game.game()));
+        } else if (playerColor == ChessGame.TeamColor.BLACK && game.blackUsername() == null) {
+            games.put(gameID, new GameData(gameID, game.whiteUsername(), authData.username(), game.gameName(), game.game()));
+        } else {
+            throw new IllegalArgumentException("already taken");
         }
     }
 }

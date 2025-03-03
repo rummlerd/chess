@@ -1,7 +1,10 @@
 package controller;
 
+import chess.ChessGame.TeamColor;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
+import dataaccess.MemoryDataAccess;
+import model.UserData;
 import spark.Request;
 import spark.Response;
 import spark.Spark;
@@ -22,6 +25,7 @@ public class GameController {
     public void setupRoutes() {
         Spark.post("/game", this::createGame);
         Spark.get("/game", this::listGames);
+        Spark.put("/game", this::joinGame);
     }
 
     private Object createGame(Request req, Response res) {
@@ -64,6 +68,38 @@ public class GameController {
         } catch (Exception e) {
             res.status(500);  // Internal server error
             return gson.toJson(Map.of("message", "Error: unexpected server issue"));
+        }
+    }
+
+    private Object joinGame(Request req, Response res) {
+        res.type("application/json");
+
+        try {
+            String authToken = req.headers("authorization");
+            GameRequest joinRequest = gson.fromJson(req.body(), GameRequest.class);
+            TeamColor playerColor = joinRequest.getPlayerColor();
+            int gameID = joinRequest.getGameID();
+
+            // Validate input (gameID must not be null)
+            if (playerColor == null || gameID == 0) {
+                throw new IllegalArgumentException("bad request");
+            }
+
+            gameService.joinGame(authToken, playerColor, gameID);
+            res.status(200);
+            return "{}";
+        } catch (IllegalArgumentException e) {
+            if (e.getMessage().contains("bad request")) {
+                res.status(400);
+            } else if (e.getMessage().contains("unauthorized")) {
+                res.status(401);
+            } else {
+                res.status(403); // already taken
+            }
+            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
+        } catch (Exception e) {
+            res.status(500);  // Internal server error
+            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
         }
     }
 }

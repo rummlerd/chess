@@ -1,5 +1,6 @@
 package service;
 
+import chess.ChessGame;
 import dataaccess.DataAccess;
 
 import java.util.List;
@@ -17,5 +18,9 @@ public class GameService {
 
     public List<controller.GameResult> getAllGames(String authToken) {
         return dataAccess.getAllGames(authToken);
+    }
+
+    public void joinGame(String authToken, ChessGame.TeamColor playerColor, int gameID) {
+        dataAccess.addUser(authToken, playerColor, gameID);
     }
 }
