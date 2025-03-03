@@ -1,17 +1,18 @@
 package server;
 
-import com.google.gson.Gson;
-import spark.*;
+import controller.UserController;
+import dataaccess.DataAccess;
+import spark.Spark;
 
 public class ChessServer {
-    public ChessServer run(int port) {
+    public ChessServer run(int port, DataAccess dataAccess) {
         Spark.port(port);
 
         Spark.staticFiles.location("public");
 
         //FIXME add routes Spark.post(...) etc.
-        // Sample route
-        Spark.get("/hello", (req, res) -> "Hello, Chess Server!");
+        UserController userController = new UserController(dataAccess);
+        userController.setupRoutes();
 
         Spark.awaitInitialization();
         System.out.println("Server running on http://localhost:" + port);
@@ -26,3 +27,4 @@ public class ChessServer {
         Spark.stop();
     }
 }
+

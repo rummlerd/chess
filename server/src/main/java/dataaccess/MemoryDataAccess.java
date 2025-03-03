@@ -23,7 +23,7 @@ public class MemoryDataAccess implements DataAccess {
     @Override
     public void createUser(UserData user) {
         if (users.containsKey(user.username())) {
-            throw new IllegalArgumentException("User already exists");
+            throw new IllegalArgumentException("already taken");
         }
         users.put(user.username(), user);
     }

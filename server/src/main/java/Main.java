@@ -1,5 +1,8 @@
 import chess.*;
+
 import server.ChessServer;
+import dataaccess.DataAccess;
+import dataaccess.MemoryDataAccess;
 
 public class Main {
     public static void main(String[] args) {
@@ -9,7 +12,9 @@ public class Main {
                 port = Integer.parseInt(args[0]);
             }
 
-            var server = new ChessServer().run(port);
+            DataAccess dataAccess = new MemoryDataAccess();
+
+            var server = new ChessServer().run(port, dataAccess);
             port = server.port();
             System.out.println("Server is running at http://localhost:" + port);
 

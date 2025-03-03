@@ -2,6 +2,7 @@ package service;
 
 import dataaccess.DataAccess;
 import model.UserData;
+import request.RegisterResult;
 
 public class UserService {
     private final DataAccess dataAccess;
@@ -9,18 +10,14 @@ public class UserService {
     public UserService(DataAccess dataAccess) {
         this.dataAccess = dataAccess;
     }
-/*
-    public RegisterResult register(RegisterRequest registerRequest) {
+
+    public RegisterResult register(UserData registerRequest) {
         try {
-            dataAccess.createUser(new UserData(registerRequest.username(), registerRequest.password(), registerRequest.email()));
+            dataAccess.createUser(registerRequest);
             //FIXME return username and authToken
-            return new RegisterResult();
+            return new RegisterResult(registerRequest.username(), dataAccess.createAuth(registerRequest.username()));
         } catch (IllegalArgumentException e) {
             return new RegisterResult("Error: " + e.getMessage());
         }
     }
- */
-
-    //FIXME public LoginResult login(LoginRequest loginRequest) {}
-    //FIXME public void logout(LogoutRequest logoutRequest) {}
 }
