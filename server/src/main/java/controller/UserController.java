@@ -20,6 +20,7 @@ public class UserController {
 
     public void setupRoutes() {
         Spark.post("/user", this::registerUser);
+        Spark.post("/session", this::login);
     }
 
     private Object registerUser(Request req, Response res) {
@@ -40,6 +41,25 @@ public class UserController {
             return gson.toJson(result);
         } catch (IllegalArgumentException e) {
             res.status(400);  // Bad request
+            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
+        } catch (Exception e) {
+            res.status(500);  // Internal server error
+            return gson.toJson(Map.of("message", "Error: unexpected server issue"));
+        }
+    }
+
+    private Object login(Request req, Response res) {
+        res.type("application/json");
+
+        try {
+            // Deserialize request as a UserData object, just ignore the email field
+            UserData loginRequest = gson.fromJson(req.body(), UserData.class);
+
+            AuthData result = userService.login(loginRequest);
+            res.status(200);
+            return gson.toJson(result);
+        } catch (IllegalArgumentException e) {
+            res.status(401);  // unauthorized
             return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
         } catch (Exception e) {
             res.status(500);  // Internal server error
