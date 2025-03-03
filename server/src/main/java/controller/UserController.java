@@ -5,9 +5,10 @@ import spark.Request;
 import spark.Response;
 import spark.Spark;
 import service.UserService;
-import request.RegisterResult;
 import dataaccess.DataAccess;
 import model.UserData;
+import model.AuthData;
+import java.util.Map;
 
 public class UserController {
     private final service.UserService userService;
@@ -27,26 +28,22 @@ public class UserController {
         try {
             UserData registerRequest = gson.fromJson(req.body(), UserData.class);
 
+            // Validate input (missing or null fields)
             if (registerRequest.username() == null || registerRequest.password() == null || registerRequest.email() == null) {
                 res.status(400);
-                return gson.toJson(new RegisterResult("Error: bad request"));
+                return gson.toJson(Map.of("message", "Error: bad request"));
             }
 
             // Call the service layer to handle the registration
-            RegisterResult result = userService.register(registerRequest);
-
-            if (result.getMessage() == null) {
-                res.status(200);
-            } else if (result.getMessage().contains("already taken")) {
-                res.status(403);
-            } else {
-                res.status(400);
-            }
-
+            AuthData result = userService.register(registerRequest);
+            res.status(200);
             return gson.toJson(result);
+        } catch (IllegalArgumentException e) {
+            res.status(400);  // Bad request
+            return gson.toJson(Map.of("message", "Error: " + e.getMessage()));
         } catch (Exception e) {
-            res.status(500);
-            return gson.toJson(new RegisterResult("Error: internal server error")); //FIXME error should be a description of error
+            res.status(500);  // Internal server error
+            return gson.toJson(Map.of("message", "Error: unexpected server issue"));
         }
     }
 }
