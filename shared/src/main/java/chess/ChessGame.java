@@ -147,7 +147,8 @@ public class ChessGame {
 
         // Check if the king remains safe during castling
         for (int i = 0; i < 3; i++) {
-            if (!doesMoveStopCheck(teamColor, new ChessMove(kingPos, new ChessPosition(kingPos.getRow(), kingPos.getColumn() + direction * i), null))) {
+            if (!doesMoveStopCheck(teamColor, new ChessMove(kingPos, new ChessPosition(kingPos.getRow(),
+                    kingPos.getColumn() + direction * i), null))) {
                 return false;
             }
         }
