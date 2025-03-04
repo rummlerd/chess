@@ -56,26 +56,36 @@ public class ChessGame {
     }
 
     /**
-     * Gets a valid moves for a piece at the given location
-     *
+     * Gets all valid moves for a piece at the given location
+     * Checks if en passant or castle moves are possible
      * @param startPosition the piece to get valid moves for
-     * @return Set of valid moves for requested piece, or null if no piece at
-     * startPosition
+     * @return Set of valid moves for requested piece, or null if no piece at the startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece myPiece = board.getPiece(startPosition);
         if (myPiece == null) {
-            return null; // Early return if no piece
+            return null; // Return early if startPosition is empty
         }
 
         Collection<ChessMove> validMoves = getStandardValidMoves(myPiece, startPosition);
 
-        checkEnPassant(validMoves, myPiece, startPosition);
-        checkCastling(validMoves, myPiece, startPosition);
+        if (lastMove != null && myPiece.getPieceType() == ChessPiece.PieceType.PAWN) {
+            checkEnPassant(validMoves, myPiece, startPosition);
+        }
+        if (myPiece.getPieceType() == ChessPiece.PieceType.KING && startPosition.getColumn() == 5) {
+            checkCastling(validMoves, startPosition);
+        }
 
         return validMoves;
     }
 
+    /**
+     * Unlike validMoves, this only validated normal moves: no en passant or castling moves
+     * Filter out invalid moves from pieceMoves methods, which returns all possible moves even if they are invalid
+     * @param myPiece ChessPiece object up for movement
+     * @param startPosition starting ChessPosition of ChessPiece up for movement
+     * @return ArrayList of valid ChessMoves
+     */
     private Collection<ChessMove> getStandardValidMoves(ChessPiece myPiece, ChessPosition startPosition) {
         Collection<ChessMove> possibleMoves = myPiece.pieceMoves(board, startPosition);
         Collection<ChessMove> validMoves = new ArrayList<>();
@@ -89,22 +99,25 @@ public class ChessGame {
         return validMoves;
     }
 
+    /**
+     * Reviews the current board layout and previous move made to verify if en passant move is valid
+     * @param validMoves add valid en passant moves to this list
+     * @param myPiece ChessPiece object up for movement
+     * @param startPosition starting ChessPosition of ChessPiece up for movement
+     */
     private void checkEnPassant(Collection<ChessMove> validMoves, ChessPiece myPiece, ChessPosition startPosition) {
-        if (lastMove == null || myPiece.getPieceType() != ChessPiece.PieceType.PAWN) {
-            return;
-        }
-
         ChessPosition lastStartPos = lastMove.getStartPosition();
         ChessPosition lastEndPos = lastMove.getEndPosition();
         ChessPiece lastPiece = board.getPiece(lastEndPos);
 
+        // Last piece moved must also be a pawn
         if (lastPiece == null || lastPiece.getPieceType() != ChessPiece.PieceType.PAWN) {
             return;
         }
 
         if (Math.abs(lastStartPos.getRow() - lastEndPos.getRow()) == 2 && // Pawn moved two squares
-                startPosition.getRow() == lastEndPos.getRow() && // Same row
-                Math.abs(startPosition.getColumn() - lastEndPos.getColumn()) == 1) { // Adjacent columns
+                startPosition.getRow() == lastEndPos.getRow() && // Pawns are next to each other in the same row
+                Math.abs(startPosition.getColumn() - lastEndPos.getColumn()) == 1) { // Pawns are in directly adjacent columns
 
             int direction = (myPiece.getTeamColor() == TeamColor.WHITE) ? 1 : -1;
             enPassantValid = true;
@@ -113,29 +126,37 @@ public class ChessGame {
         }
     }
 
-    private void checkCastling(Collection<ChessMove> validMoves, ChessPiece myPiece, ChessPosition startPosition) {
-        if (myPiece.getPieceType() != ChessPiece.PieceType.KING || startPosition.getColumn() != 5) {
-            return;
-        }
-
-        TeamColor teamColor = myPiece.getTeamColor();
+    /**
+     * Adds move to validMoves if any castling moves are possible for startingPiece
+     * @param validMoves add valid castling moves to this ArrayList
+     * @param startPosition starting ChessPosition of ChessPiece up for movement
+     */
+    private void checkCastling(Collection<ChessMove> validMoves, ChessPosition startPosition) {
 
         // Check king-side castling
-        if (canCastle(startPosition, 1, teamColor, whiteKingCastle, blackKingCastle)) {
+        if (canCastle(startPosition, 1, whiteKingCastle, blackKingCastle)) {
             validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
                     startPosition.getColumn() + 2), null));
         }
 
         // Check queen-side castling
-        if (canCastle(startPosition, -1, teamColor, whiteQueenCastle, blackQueenCastle)) {
+        if (canCastle(startPosition, -1, whiteQueenCastle, blackQueenCastle)) {
             validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
                     startPosition.getColumn() - 2), null));
         }
     }
 
-    private boolean canCastle(ChessPosition kingPos, int direction, TeamColor teamColor,
-                              boolean whiteCastle, boolean blackCastle) {
+    /**
+     * Abstract method for checking if castle is valid
+     * @param kingPos currentPosition, piece must be king (checked previously)
+     * @param direction positive (right) for king side, negative (left) for queen side
+     * @param whiteCastle false if castle move has been invalidated for white by previous moves
+     * @param blackCastle false if castle move has been invalidated for black by previous moves
+     * @return true if castle move valid to be added to validMoves
+     */
+    private boolean canCastle(ChessPosition kingPos, int direction, boolean whiteCastle, boolean blackCastle) {
         int[] offsets = (direction == 1) ? new int[]{1, 2} : new int[]{1, 2, 3};
+        TeamColor teamColor = board.getPiece(kingPos).getTeamColor();
 
         // Check if path is clear
         for (int offset : offsets) {
@@ -157,9 +178,9 @@ public class ChessGame {
     }
 
     /**
-     * Makes a move in a chess game
+     * Makes a move in a chess game, then switches team for next move
      *
-     * @param move chess move to preform
+     * @param move chess move to perform
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
@@ -169,18 +190,23 @@ public class ChessGame {
         ChessPosition endPosition = move.getEndPosition();
         ChessPiece myPiece = board.getPiece(startPosition);
         ChessPiece.PieceType myType = myPiece.getPieceType();
-        TeamColor myColor = myPiece.getTeamColor();
 
+        // Update ChessBoard and ChessGame information for special moves
         handleSpecialMoves(myType, startPosition, endPosition);
-
-        board.makeMove(move);
-        updateCastlingRights(myType, myColor, startPosition, endPosition);
-
+        updateCastlingRights(myType, myPiece.getTeamColor(), startPosition, endPosition);
         enPassantValid = false;
         lastMove = move;
+
+        board.makeMove(move);
+
         team = (team == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
     }
 
+    /**
+     * Throws variety of errors when client attempts to make invalid move
+     * @param move ChessMove needing validation
+     * @throws InvalidMoveException wrong turn, invalid move, no piece at indicated starting ChessPosition
+     */
     private void validateMove(ChessMove move) throws InvalidMoveException {
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece myPiece = board.getPiece(startPosition);
@@ -196,24 +222,44 @@ public class ChessGame {
         }
     }
 
+    /**
+     * If en passant move was made, capture the enemy pawn
+     * If castle move was made, move the rook as well
+     * @param myType PieceType of piece being moved
+     * @param startPosition ChessPosition being moved from
+     * @param endPosition ChessPosition being moved to
+     */
     private void handleSpecialMoves(ChessPiece.PieceType myType, ChessPosition startPosition, ChessPosition endPosition) {
+        int startRow = startPosition.getRow();
+        int startColumn = startPosition.getColumn();
+        int endColumn = endPosition.getColumn();
+
         if (myType == ChessPiece.PieceType.PAWN && enPassantValid &&
-                board.getPiece(endPosition) == null &&
-                startPosition.getColumn() != endPosition.getColumn()) {
-            board.removePiece(new ChessPosition(startPosition.getRow(), endPosition.getColumn()));
+                board.getPiece(endPosition) == null && // Pawn is moving into empty space (not capturing directly)
+                startColumn != endColumn) { // Pawn is not moving straight (only possible when capturing)
+            board.removePiece(new ChessPosition(startRow, endColumn));
         }
 
-        if (myType == ChessPiece.PieceType.KING && Math.abs(startPosition.getColumn() - endPosition.getColumn()) == 2) {
-            int rookStartColumn = (startPosition.getColumn() > endPosition.getColumn()) ? 1 : 8;
-            int rookEndColumn = (startPosition.getColumn() > endPosition.getColumn()) ? 4 : 6;
-            board.makeMove(new ChessMove(new ChessPosition(startPosition.getRow(), rookStartColumn),
-                    new ChessPosition(startPosition.getRow(), rookEndColumn), null));
+        if (myType == ChessPiece.PieceType.KING && Math.abs(startColumn - endColumn) == 2) { // King can only move two spaces when castling
+            int rookStartColumn = (startColumn > endColumn) ? 1 : 8; // Find correct rook based on whether king is moving left or right
+            int rookEndColumn = (startColumn > endColumn) ? 4 : 6; // Move rook to correct position based on whether king is moving left or right
+            board.makeMove(new ChessMove(new ChessPosition(startRow, rookStartColumn),
+                    new ChessPosition(startRow, rookEndColumn), null));
         }
     }
 
+    /**
+     * If any rook or king moves, change associated boolean to mark castle move as no longer possible
+     * @param myType PieceType, king or rook are of interest
+     * @param myColor teamColor, so correct booleans are changed
+     * @param startPosition starting ChessPosition, used to determine which castle possibility to remove
+     * @param endPosition ending ChessPosition of move, to check if king moved > 2 spaces (castled)
+     */
     private void updateCastlingRights(ChessPiece.PieceType myType, TeamColor myColor, ChessPosition startPosition, ChessPosition endPosition) {
+        int startColumn = startPosition.getColumn();
+
         if (myType == ChessPiece.PieceType.KING) {
-            if (Math.abs(startPosition.getColumn() - endPosition.getColumn()) != 2) {
+            if (Math.abs(startColumn - endPosition.getColumn()) != 2) {
                 if (myColor == TeamColor.WHITE) {
                     whiteKingCastle = false;
                     whiteQueenCastle = false;
@@ -224,14 +270,14 @@ public class ChessGame {
             }
         } else if (myType == ChessPiece.PieceType.ROOK) {
             if (myColor == TeamColor.WHITE) {
-                if (startPosition.getColumn() > 4) {
+                if (startColumn > 4) {
                     whiteKingCastle = false;
                 }
                 else {
                     whiteQueenCastle = false;
                 }
             } else {
-                if (startPosition.getColumn() > 4) {
+                if (startColumn > 4) {
                     blackKingCastle = false;
                 }
                 else {
@@ -252,6 +298,12 @@ public class ChessGame {
         return canAnyMoveCapturePosition(teamColor, kingPosition);
     }
 
+    /**
+     * Iterates through entire board to check if any enemy pieces can capture piece in targetPosition
+     * @param teamColor Color of ChessPiece up for capture
+     * @param targetPosition ChessPosition of ChessPiece up for capture
+     * @return True if ChessPiece in targetPosition can be captured
+     */
     private boolean canAnyMoveCapturePosition(TeamColor teamColor, ChessPosition targetPosition) {
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
@@ -267,6 +319,13 @@ public class ChessGame {
         return false;
     }
 
+    /**
+     * Checks if a single piece can move to capture piece in targetPosition
+     * @param piece ChessPiece that may capture
+     * @param from starting ChessPosition of ChessPiece that may capture
+     * @param target ChessPosition of ChessPiece that may be captured
+     * @return true if piece can move to targetPosition
+     */
     private boolean canPieceCapturePosition(ChessPiece piece, ChessPosition from, ChessPosition target) {
         for (ChessMove move : piece.pieceMoves(board, from)) {
             if (move.getEndPosition().equals(target)) {
