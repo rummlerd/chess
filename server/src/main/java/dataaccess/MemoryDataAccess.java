@@ -34,7 +34,7 @@ public class MemoryDataAccess implements DataAccess {
     public UserData getUser(String username) throws DataAccessException {
         UserData user = users.get(username);
         if (user == null) {
-            throw new DataAccessException("user not found");
+            throw new DataAccessException("unauthorized"); // Unauthorized because that is what the StandardAPITests want
         }
         return user;
     }

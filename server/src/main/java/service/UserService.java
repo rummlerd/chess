@@ -12,16 +12,15 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
-    public AuthData register(UserData registerRequest) throws DataAccessException {
-        String username = registerRequest.username();
-        dataAccess.createUser(registerRequest);
+    public AuthData register(UserData user) throws DataAccessException {
+        String username = user.username();
+        dataAccess.createUser(user);
         return new AuthData(dataAccess.createAuth(username), username);
     }
 
-    public AuthData login(UserData loginRequest) throws DataAccessException {
-        String username = loginRequest.username();
-        UserData user = dataAccess.getUser(username);
-        if (user.password().equals(loginRequest.password())) {
+    public AuthData login(UserData user) throws DataAccessException {
+        String username = user.username();
+        if (dataAccess.getUser(username).password().equals(user.password())) {
             return new AuthData(dataAccess.createAuth(username), username);
         }
         throw new DataAccessException("unauthorized");

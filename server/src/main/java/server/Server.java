@@ -1,13 +1,16 @@
 package server;
 
 import dataaccess.DataAccess;
-import spark.Spark;
+import dataaccess.MemoryDataAccess;
+import spark.*;
 
-public class ChessServer {
-    public ChessServer run(int port, DataAccess dataAccess) {
-        Spark.port(port);
+public class Server {
+    public int run(int desiredPort) {
+        Spark.port(desiredPort);
 
-        Spark.staticFiles.location("public");
+        Spark.staticFiles.location("web");
+
+        DataAccess dataAccess = new MemoryDataAccess();
 
         Spark.before((req, res) -> {
             res.type("application/json");  // Set content type globally to JSON
@@ -18,12 +21,17 @@ public class ChessServer {
         routeManager.setupRoutes();
 
         Spark.awaitInitialization();
-        System.out.println("Server running on http://localhost:" + port);
-        return this;
+        System.out.println("Server running on http://localhost:" + desiredPort);
+        return Spark.port();
     }
 
     public int port() {
         return Spark.port();
+    }
+
+    public void stop() {
+        Spark.stop();
+        Spark.awaitStop();
     }
 }
 
