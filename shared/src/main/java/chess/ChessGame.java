@@ -63,104 +63,100 @@ public class ChessGame {
      * startPosition
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
-        if (board.getPiece(startPosition) == null) { return null; }
         ChessPiece myPiece = board.getPiece(startPosition);
-        TeamColor teamColor = myPiece.getTeamColor();
-        ChessPiece.PieceType myType = myPiece.getPieceType();
-        Collection<ChessMove> possibleMoves = myPiece.pieceMoves(board, startPosition);
-        Collection<ChessMove> validMoves = new ArrayList<>();
+        if (myPiece == null) return null; // Early return if no piece
 
-        for (ChessMove move : possibleMoves) {
-            try {
-                // Create a copy of the board before trying the move
-                ChessBoard copiedBoard = board.clone();
-                ChessGame copiedGame = new ChessGame();
-                copiedGame.setBoard(copiedBoard);
-                copiedBoard.makeMove(move);
-                if (!copiedGame.isInCheck(teamColor)) {
-                    validMoves.add(move);
-                }
-            } catch (CloneNotSupportedException e){
-                throw new RuntimeException(e);
-            }
-        }
-        // Check for enPassant possibility
-        if (lastMove != null) { // Can not be first move of the game
-            ChessPosition lastStartPos = lastMove.getStartPosition();
-            ChessPosition lastEndPos = lastMove.getEndPosition();
-            ChessPiece lastPiece = board.getPiece(lastEndPos);
-            if(lastPiece != null) { // last piece may be null if castle or en passant move happened
-                if (lastPiece.getPieceType() == ChessPiece.PieceType.PAWN && myType == ChessPiece.PieceType.PAWN && // Both pieces must be pawns
-                        Math.abs(lastStartPos.getRow() - lastEndPos.getRow()) == 2 && // Previous move must have been a pawn advancing two squares
-                        startPosition.getRow() == lastEndPos.getRow() && // Pawns must be on the same row
-                        (startPosition.getColumn() == lastEndPos.getColumn() - 1 || // Pawns must be in adjacent columns
-                                startPosition.getColumn() == lastEndPos.getColumn() + 1)) {
-                    int direction = (myPiece.getTeamColor() == TeamColor.WHITE) ? 1 : -1; // Advance one row up for white, one down for black
-                    enPassantValid = true;
-                    validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow() + direction,
-                            lastEndPos.getColumn()), null)); // Add the valid en passant move
-                }
-            }
-        }
-        // Check for check possibility
-        if (myType == ChessPiece.PieceType.KING && startPosition.getColumn() == 5) {
-            boolean canCastle = true;
-            if (board.getPiece(new ChessPosition(startPosition.getRow(), startPosition.getColumn() + 1)) == null &&
-                    board.getPiece(new ChessPosition(startPosition.getRow(), startPosition.getColumn() + 2)) == null) {
-                // King side castle is valid, if king is never in check
-                for (int i = 0; i < 3; i++) {
-                    try {
-                        // Create a copy of the board before trying the move
-                        ChessBoard copiedBoard = board.clone();
-                        ChessGame copiedGame = new ChessGame();
-                        copiedGame.setBoard(copiedBoard);
-                        copiedBoard.makeMove(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
-                                startPosition.getColumn() + i), null));
-                        if (copiedGame.isInCheck(teamColor)) {
-                            canCastle = false;
-                        }
-                    } catch (CloneNotSupportedException e){
-                        throw new RuntimeException(e);
-                    }
-                }
-                // If the king was never in check, add King side castle to valid moves
-                if (canCastle &&
-                        ((teamColor == TeamColor.WHITE && whiteKingCastle) ||
-                        (teamColor == TeamColor.BLACK && blackKingCastle))) {
-                    validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(), startPosition.getColumn() + 2), null));
-                }
-            }
-            canCastle = true;
-            if (board.getPiece(new ChessPosition(startPosition.getRow(), startPosition.getColumn() - 1)) == null &&
-                    board.getPiece(new ChessPosition(startPosition.getRow(), startPosition.getColumn() - 2)) == null &&
-                    board.getPiece(new ChessPosition(startPosition.getRow(), startPosition.getColumn() - 3)) == null) {
-                // Queen side castle is valid if king is never in check
-                for (int i = 0; i < 3; i++) {
-                    try {
-                        // Create a copy of the board before trying the move
-                        ChessBoard copiedBoard = board.clone();
-                        ChessGame copiedGame = new ChessGame();
-                        copiedGame.setBoard(copiedBoard);
-                        copiedBoard.makeMove(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
-                                startPosition.getColumn() - i), null));
-                        if (copiedGame.isInCheck(teamColor)) {
-                            canCastle = false;
-                        }
-                    } catch (CloneNotSupportedException e){
-                        throw new RuntimeException(e);
-                    }
-                }
-                // If the king was never in check, add Queen side castle to valid moves
-                if (canCastle &&
-                        ((teamColor == TeamColor.WHITE && whiteQueenCastle) ||
-                        (teamColor == TeamColor.BLACK && blackQueenCastle))) {
-                    validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
-                            startPosition.getColumn() - 2), null));
-                }
-            }
-        }
+        Collection<ChessMove> validMoves = getStandardValidMoves(myPiece, startPosition);
+
+        checkEnPassant(validMoves, myPiece, startPosition);
+        checkCastling(validMoves, myPiece, startPosition);
 
         return validMoves;
+    }
+
+    private Collection<ChessMove> getStandardValidMoves(ChessPiece myPiece, ChessPosition startPosition) {
+        Collection<ChessMove> possibleMoves = myPiece.pieceMoves(board, startPosition);
+        Collection<ChessMove> validMoves = new ArrayList<>();
+        TeamColor teamColor = myPiece.getTeamColor();
+
+        for (ChessMove move : possibleMoves) {
+            if (simulateMove(move, teamColor)) {
+                validMoves.add(move);
+            }
+        }
+        return validMoves;
+    }
+
+    private void checkEnPassant(Collection<ChessMove> validMoves, ChessPiece myPiece, ChessPosition startPosition) {
+        if (lastMove == null || myPiece.getPieceType() != ChessPiece.PieceType.PAWN) return;
+
+        ChessPosition lastStartPos = lastMove.getStartPosition();
+        ChessPosition lastEndPos = lastMove.getEndPosition();
+        ChessPiece lastPiece = board.getPiece(lastEndPos);
+
+        if (lastPiece == null || lastPiece.getPieceType() != ChessPiece.PieceType.PAWN) return;
+
+        if (Math.abs(lastStartPos.getRow() - lastEndPos.getRow()) == 2 && // Pawn moved two squares
+                startPosition.getRow() == lastEndPos.getRow() && // Same row
+                Math.abs(startPosition.getColumn() - lastEndPos.getColumn()) == 1) { // Adjacent columns
+
+            int direction = (myPiece.getTeamColor() == TeamColor.WHITE) ? 1 : -1;
+            enPassantValid = true;
+            validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow() + direction,
+                    lastEndPos.getColumn()), null));
+        }
+    }
+
+    private void checkCastling(Collection<ChessMove> validMoves, ChessPiece myPiece, ChessPosition startPosition) {
+        if (myPiece.getPieceType() != ChessPiece.PieceType.KING || startPosition.getColumn() != 5) return;
+
+        TeamColor teamColor = myPiece.getTeamColor();
+
+        // Check king-side castling
+        if (canCastle(startPosition, 1, teamColor, whiteKingCastle, blackKingCastle)) {
+            validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
+                    startPosition.getColumn() + 2), null));
+        }
+
+        // Check queen-side castling
+        if (canCastle(startPosition, -1, teamColor, whiteQueenCastle, blackQueenCastle)) {
+            validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
+                    startPosition.getColumn() - 2), null));
+        }
+    }
+
+    private boolean canCastle(ChessPosition kingPos, int direction, TeamColor teamColor,
+                              boolean whiteCastle, boolean blackCastle) {
+        int[] offsets = (direction == 1) ? new int[]{1, 2} : new int[]{1, 2, 3};
+
+        // Check if path is clear
+        for (int offset : offsets) {
+            if (board.getPiece(new ChessPosition(kingPos.getRow(),
+                    kingPos.getColumn() + direction * offset)) != null) {
+                return false;
+            }
+        }
+
+        // Check if the king remains safe during castling
+        for (int i = 0; i < 3; i++) {
+            if (!simulateMove(new ChessMove(kingPos, new ChessPosition(kingPos.getRow(), kingPos.getColumn() + direction * i), null), teamColor)) {
+                return false;
+            }
+        }
+
+        return (teamColor == TeamColor.WHITE) ? whiteCastle : blackCastle;
+    }
+
+    private boolean simulateMove(ChessMove move, TeamColor teamColor) {
+        try {
+            ChessBoard copiedBoard = board.clone();
+            ChessGame copiedGame = new ChessGame();
+            copiedGame.setBoard(copiedBoard);
+            copiedBoard.makeMove(move);
+            return !copiedGame.isInCheck(teamColor);
+        } catch (CloneNotSupportedException e) {
+            throw new RuntimeException(e);
+        }
     }
 
     /**
@@ -170,72 +166,74 @@ public class ChessGame {
      * @throws InvalidMoveException if move is invalid
      */
     public void makeMove(ChessMove move) throws InvalidMoveException {
+        validateMove(move);
+
         ChessPosition startPosition = move.getStartPosition();
         ChessPosition endPosition = move.getEndPosition();
         ChessPiece myPiece = board.getPiece(startPosition);
+        ChessPiece.PieceType myType = myPiece.getPieceType();
+        TeamColor myColor = myPiece.getTeamColor();
+
+        handleSpecialMoves(myType, startPosition, endPosition);
+
+        board.makeMove(move);
+        updateCastlingRights(myType, myColor, startPosition, endPosition);
+
+        enPassantValid = false;
+        lastMove = move;
+        team = (team == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE;
+    }
+
+    private void validateMove(ChessMove move) throws InvalidMoveException {
+        ChessPosition startPosition = move.getStartPosition();
+        ChessPiece myPiece = board.getPiece(startPosition);
+
         if (myPiece == null) {
             throw new InvalidMoveException("No piece at starting location");
         }
-        TeamColor myColor = myPiece.getTeamColor();
-        ChessPiece.PieceType myType = myPiece.getPieceType();
-        if (myColor != team) {
+        if (myPiece.getTeamColor() != team) {
             throw new InvalidMoveException("It is not your turn");
         }
-        Collection<ChessMove> validMoves = validMoves(startPosition);
-        if (validMoves != null) {
-            if (validMoves.contains(move)) {
-                // If this is an en passant move, remove the captured pawn
-                if (enPassantValid &&
-                        myType == ChessPiece.PieceType.PAWN &&
-                        board.getPiece(endPosition) == null &&
-                        startPosition.getColumn() - endPosition.getColumn() != 0) {
-                    board.removePiece(new ChessPosition(startPosition.getRow(), endPosition.getColumn()));
+        if (!validMoves(startPosition).contains(move)) {
+            throw new InvalidMoveException("Invalid move");
+        }
+    }
+
+    private void handleSpecialMoves(ChessPiece.PieceType myType, ChessPosition startPosition, ChessPosition endPosition) {
+        if (myType == ChessPiece.PieceType.PAWN && enPassantValid &&
+                board.getPiece(endPosition) == null &&
+                startPosition.getColumn() != endPosition.getColumn()) {
+            board.removePiece(new ChessPosition(startPosition.getRow(), endPosition.getColumn()));
+        }
+
+        if (myType == ChessPiece.PieceType.KING && Math.abs(startPosition.getColumn() - endPosition.getColumn()) == 2) {
+            int rookStartColumn = (startPosition.getColumn() > endPosition.getColumn()) ? 1 : 8;
+            int rookEndColumn = (startPosition.getColumn() > endPosition.getColumn()) ? 4 : 6;
+            board.makeMove(new ChessMove(new ChessPosition(startPosition.getRow(), rookStartColumn),
+                    new ChessPosition(startPosition.getRow(), rookEndColumn), null));
+        }
+    }
+
+    private void updateCastlingRights(ChessPiece.PieceType myType, TeamColor myColor, ChessPosition startPosition, ChessPosition endPosition) {
+        if (myType == ChessPiece.PieceType.KING) {
+            if (Math.abs(startPosition.getColumn() - endPosition.getColumn()) != 2) {
+                if (myColor == TeamColor.WHITE) {
+                    whiteKingCastle = false;
+                    whiteQueenCastle = false;
+                } else {
+                    blackKingCastle = false;
+                    blackQueenCastle = false;
                 }
-                // If this is a castle move, move the rook as well
-                if (myType == ChessPiece.PieceType.KING && Math.abs(startPosition.getColumn() - endPosition.getColumn()) == 2) {
-                    if (startPosition.getColumn() - endPosition.getColumn() > 0) { // King moved left
-                        // Move Queen side rook from column 1 to column 4
-                        board.makeMove(new ChessMove(new ChessPosition(startPosition.getRow(), 1),
-                                new ChessPosition(startPosition.getRow(), 4), null));
-                    } else { // King moved right
-                        // Move King side rook from column 8 to column 6
-                        board.makeMove(new ChessMove(new ChessPosition(startPosition.getRow(), 8),
-                                new ChessPosition(startPosition.getRow(), 6), null));
-                    }
-                }
-                board.makeMove(move);
-                // Check if this move eliminates the possibility of castling
-                if (myType == ChessPiece.PieceType.KING && Math.abs(startPosition.getColumn() - endPosition.getColumn()) != 2) {
-                    if (myColor == TeamColor.WHITE) {
-                        whiteKingCastle = false;
-                        whiteQueenCastle = false;
-                    } else {
-                        blackKingCastle = false;
-                        blackQueenCastle = false;
-                    }
-                }
-                if (myType == ChessPiece.PieceType.ROOK) {
-                    if (myColor == TeamColor.WHITE) {
-                        if (startPosition.getColumn() > 4) {
-                            whiteKingCastle = false;
-                        } else {
-                            whiteQueenCastle = false;
-                        }
-                    } else {
-                        if (startPosition.getColumn() > 4) {
-                            blackKingCastle = false;
-                        } else {
-                            blackQueenCastle = false;
-                        }
-                    }
-                }
-                enPassantValid = false; // Reset the possibility of an en passant move
-                lastMove = move; // save the move made for en passant logic
-                team = (team == TeamColor.WHITE) ? TeamColor.BLACK : TeamColor.WHITE; // Change the team to indicate turn over
-                return;
+            }
+        } else if (myType == ChessPiece.PieceType.ROOK) {
+            if (myColor == TeamColor.WHITE) {
+                if (startPosition.getColumn() > 4) whiteKingCastle = false;
+                else whiteQueenCastle = false;
+            } else {
+                if (startPosition.getColumn() > 4) blackKingCastle = false;
+                else blackQueenCastle = false;
             }
         }
-        throw new InvalidMoveException("Invalid move");
     }
 
     /**
