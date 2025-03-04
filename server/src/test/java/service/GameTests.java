@@ -106,7 +106,7 @@ public class GameTests {
 
     @Test
     @DisplayName("Unauthorized to list games")
-    public void ListAllGamesUnauthorized() {
+    public void listAllGamesUnauthorized() {
         DataAccess dataAccess = new MemoryDataAccess();
         GameService gameService = new GameService(dataAccess);
 

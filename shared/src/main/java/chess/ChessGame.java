@@ -97,7 +97,8 @@ public class ChessGame {
                                 startPosition.getColumn() == lastEndPos.getColumn() + 1)) {
                     int direction = (myPiece.getTeamColor() == TeamColor.WHITE) ? 1 : -1; // Advance one row up for white, one down for black
                     enPassantValid = true;
-                    validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow() + direction, lastEndPos.getColumn()), null)); // Add the valid en passant move
+                    validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow() + direction,
+                            lastEndPos.getColumn()), null)); // Add the valid en passant move
                 }
             }
         }
@@ -113,7 +114,8 @@ public class ChessGame {
                         ChessBoard copiedBoard = board.clone();
                         ChessGame copiedGame = new ChessGame();
                         copiedGame.setBoard(copiedBoard);
-                        copiedBoard.makeMove(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(), startPosition.getColumn() + i), null));
+                        copiedBoard.makeMove(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
+                                startPosition.getColumn() + i), null));
                         if (copiedGame.isInCheck(teamColor)) {
                             canCastle = false;
                         }
@@ -139,7 +141,8 @@ public class ChessGame {
                         ChessBoard copiedBoard = board.clone();
                         ChessGame copiedGame = new ChessGame();
                         copiedGame.setBoard(copiedBoard);
-                        copiedBoard.makeMove(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(), startPosition.getColumn() - i), null));
+                        copiedBoard.makeMove(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
+                                startPosition.getColumn() - i), null));
                         if (copiedGame.isInCheck(teamColor)) {
                             canCastle = false;
                         }
@@ -151,7 +154,8 @@ public class ChessGame {
                 if (canCastle &&
                         ((teamColor == TeamColor.WHITE && whiteQueenCastle) ||
                         (teamColor == TeamColor.BLACK && blackQueenCastle))) {
-                    validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(), startPosition.getColumn() - 2), null));
+                    validMoves.add(new ChessMove(startPosition, new ChessPosition(startPosition.getRow(),
+                            startPosition.getColumn() - 2), null));
                 }
             }
         }
@@ -191,10 +195,12 @@ public class ChessGame {
                 if (myType == ChessPiece.PieceType.KING && Math.abs(startPosition.getColumn() - endPosition.getColumn()) == 2) {
                     if (startPosition.getColumn() - endPosition.getColumn() > 0) { // King moved left
                         // Move Queen side rook from column 1 to column 4
-                        board.makeMove(new ChessMove(new ChessPosition(startPosition.getRow(), 1), new ChessPosition(startPosition.getRow(), 4), null));
+                        board.makeMove(new ChessMove(new ChessPosition(startPosition.getRow(), 1),
+                                new ChessPosition(startPosition.getRow(), 4), null));
                     } else { // King moved right
                         // Move King side rook from column 8 to column 6
-                        board.makeMove(new ChessMove(new ChessPosition(startPosition.getRow(), 8), new ChessPosition(startPosition.getRow(), 6), null));
+                        board.makeMove(new ChessMove(new ChessPosition(startPosition.getRow(), 8),
+                                new ChessPosition(startPosition.getRow(), 6), null));
                     }
                 }
                 board.makeMove(move);
