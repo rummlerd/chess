@@ -82,7 +82,7 @@ public class ChessGame {
         TeamColor teamColor = myPiece.getTeamColor();
 
         for (ChessMove move : possibleMoves) {
-            if (simulateMove(move, teamColor)) {
+            if (doesMoveStopCheck(teamColor, move)) {
                 validMoves.add(move);
             }
         }
@@ -147,25 +147,12 @@ public class ChessGame {
 
         // Check if the king remains safe during castling
         for (int i = 0; i < 3; i++) {
-            if (!simulateMove(new ChessMove(kingPos, new ChessPosition(kingPos.getRow(),
-                    kingPos.getColumn() + direction * i), null), teamColor)) {
+            if (!doesMoveStopCheck(teamColor, new ChessMove(kingPos, new ChessPosition(kingPos.getRow(), kingPos.getColumn() + direction * i), null))) {
                 return false;
             }
         }
 
         return (teamColor == TeamColor.WHITE) ? whiteCastle : blackCastle;
-    }
-
-    private boolean simulateMove(ChessMove move, TeamColor teamColor) {
-        try {
-            ChessBoard copiedBoard = board.clone();
-            ChessGame copiedGame = new ChessGame();
-            copiedGame.setBoard(copiedBoard);
-            copiedBoard.makeMove(move);
-            return !copiedGame.isInCheck(teamColor);
-        } catch (CloneNotSupportedException e) {
-            throw new RuntimeException(e);
-        }
     }
 
     /**
@@ -236,11 +223,19 @@ public class ChessGame {
             }
         } else if (myType == ChessPiece.PieceType.ROOK) {
             if (myColor == TeamColor.WHITE) {
-                if (startPosition.getColumn() > 4) whiteKingCastle = false;
-                else whiteQueenCastle = false;
+                if (startPosition.getColumn() > 4) {
+                    whiteKingCastle = false;
+                }
+                else {
+                    whiteQueenCastle = false;
+                }
             } else {
-                if (startPosition.getColumn() > 4) blackKingCastle = false;
-                else blackQueenCastle = false;
+                if (startPosition.getColumn() > 4) {
+                    blackKingCastle = false;
+                }
+                else {
+                    blackQueenCastle = false;
+                }
             }
         }
     }
