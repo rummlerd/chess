@@ -77,7 +77,7 @@ public class MemoryDataAccess implements DataAccess {
     public GameData getGame(int gameID) throws DataAccessException {
         GameData game = games.get(gameID);
         if (game == null) {
-            throw new DataAccessException("game not found");
+            throw new DataAccessException("bad request"); // An incorrect gameID would be considered a bad request error
         }
         return game;
     }

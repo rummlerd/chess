@@ -5,9 +5,7 @@ import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import dataaccess.DataAccessException;
 import httpmessages.GameRequest;
-import httpmessages.GameResult;
 import dataaccess.DataAccess;
-import model.AuthData;
 import model.UserData;
 import service.GameService;
 import service.UserService;
@@ -15,17 +13,14 @@ import spark.Request;
 import spark.Response;
 import spark.Spark;
 
-import java.util.List;
 import java.util.Map;
 
 public class RouteManager {
-    private final DataAccess dataAccess;
     private final GameService gameService;
     private final UserService userService;
     private final Gson gson = new GsonBuilder().serializeNulls().create();
 
     public RouteManager(DataAccess dataAccess) {
-        this.dataAccess = dataAccess;
         this.gameService = new GameService(dataAccess);
         this.userService = new UserService(dataAccess);
     }
@@ -55,55 +50,36 @@ public class RouteManager {
     }
 
     private Object clearApplication(Request req, Response res) {
-        dataAccess.clear();
+        userService.clearApplication();
         return "{}";
     }
 
     private Object registerUser(Request req, Response res) throws DataAccessException {
         UserData user = gson.fromJson(req.body(), UserData.class);
-
-        // Validate that all necessary fields were input
-        if (user.username() == null || user.password() == null || user.email() == null) {
-            throw new DataAccessException("bad request");
-        }
-
-        AuthData result = userService.register(user);
-        return gson.toJson(result);
+        return gson.toJson(userService.register(user));
     }
 
     private Object login(Request req, Response res) throws DataAccessException {
         // Deserialize request as a UserData object, just ignore the email field
         UserData user = gson.fromJson(req.body(), UserData.class);
-
-        AuthData result = userService.login(user);
-        return gson.toJson(result);
+        return gson.toJson(userService.login(user));
     }
 
     private Object logout(Request req, Response res) throws DataAccessException {
         String authToken = req.headers("authorization");
-
         userService.logout(authToken);
         return "{}";
     }
 
     private Object listGames(Request req, Response res) throws DataAccessException {
         String authToken = req.headers("authorization");
-
-        List<GameResult> games = gameService.getAllGames(authToken);
-        return gson.toJson(Map.of("games", games));
+        return gson.toJson(Map.of("games", gameService.getAllGames(authToken)));
     }
 
     private Object createGame(Request req, Response res) throws DataAccessException {
         String authToken = req.headers("authorization");
         String gameName = (String) gson.fromJson(req.body(), Map.class).get("gameName");
-
-        // Validate that a gameName was input
-        if (gameName == null) {
-            throw new DataAccessException("bad request");
-        }
-
-        int result = gameService.createGame(authToken, gameName);
-        return gson.toJson(Map.of("gameID", result));
+        return gson.toJson(Map.of("gameID", gameService.createGame(authToken, gameName)));
     }
 
     private Object joinGame(Request req, Response res) throws DataAccessException {
@@ -111,11 +87,6 @@ public class RouteManager {
         GameRequest joinRequest = gson.fromJson(req.body(), GameRequest.class);
         ChessGame.TeamColor playerColor = joinRequest.getPlayerColor();
         int gameID = joinRequest.getGameID();
-
-        // Validate input (gameID must not be null)
-        if (playerColor == null || gameID == 0) {
-            throw new DataAccessException("bad request");
-        }
 
         gameService.joinGame(authToken, playerColor, gameID);
         return "{}";

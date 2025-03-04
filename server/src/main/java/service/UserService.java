@@ -12,8 +12,18 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
+    public void clearApplication() {
+        dataAccess.clear();
+    }
+
     public AuthData register(UserData user) throws DataAccessException {
         String username = user.username();
+
+        // Validate that all necessary fields were input
+        if (username == null || user.password() == null || user.email() == null) {
+            throw new DataAccessException("bad request");
+        }
+
         dataAccess.createUser(user);
         return new AuthData(dataAccess.createAuth(username), username);
     }
