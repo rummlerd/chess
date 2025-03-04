@@ -64,7 +64,9 @@ public class ChessGame {
      */
     public Collection<ChessMove> validMoves(ChessPosition startPosition) {
         ChessPiece myPiece = board.getPiece(startPosition);
-        if (myPiece == null) return null; // Early return if no piece
+        if (myPiece == null) {
+            return null; // Early return if no piece
+        }
 
         Collection<ChessMove> validMoves = getStandardValidMoves(myPiece, startPosition);
 
@@ -88,13 +90,17 @@ public class ChessGame {
     }
 
     private void checkEnPassant(Collection<ChessMove> validMoves, ChessPiece myPiece, ChessPosition startPosition) {
-        if (lastMove == null || myPiece.getPieceType() != ChessPiece.PieceType.PAWN) return;
+        if (lastMove == null || myPiece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return;
+        }
 
         ChessPosition lastStartPos = lastMove.getStartPosition();
         ChessPosition lastEndPos = lastMove.getEndPosition();
         ChessPiece lastPiece = board.getPiece(lastEndPos);
 
-        if (lastPiece == null || lastPiece.getPieceType() != ChessPiece.PieceType.PAWN) return;
+        if (lastPiece == null || lastPiece.getPieceType() != ChessPiece.PieceType.PAWN) {
+            return;
+        }
 
         if (Math.abs(lastStartPos.getRow() - lastEndPos.getRow()) == 2 && // Pawn moved two squares
                 startPosition.getRow() == lastEndPos.getRow() && // Same row
@@ -108,7 +114,9 @@ public class ChessGame {
     }
 
     private void checkCastling(Collection<ChessMove> validMoves, ChessPiece myPiece, ChessPosition startPosition) {
-        if (myPiece.getPieceType() != ChessPiece.PieceType.KING || startPosition.getColumn() != 5) return;
+        if (myPiece.getPieceType() != ChessPiece.PieceType.KING || startPosition.getColumn() != 5) {
+            return;
+        }
 
         TeamColor teamColor = myPiece.getTeamColor();
 
@@ -139,7 +147,8 @@ public class ChessGame {
 
         // Check if the king remains safe during castling
         for (int i = 0; i < 3; i++) {
-            if (!simulateMove(new ChessMove(kingPos, new ChessPosition(kingPos.getRow(), kingPos.getColumn() + direction * i), null), teamColor)) {
+            if (!simulateMove(new ChessMove(kingPos, new ChessPosition(kingPos.getRow(),
+                    kingPos.getColumn() + direction * i), null), teamColor)) {
                 return false;
             }
         }
