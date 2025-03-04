@@ -250,13 +250,11 @@ public class ChessGame {
             for (int j = 1; j < 9; j++) {
                 ChessPosition position = new ChessPosition(i, j);
                 ChessPiece myPiece = board.getPiece(position);
-                if (myPiece != null) {
-                    if (myPiece.getTeamColor() != teamColor) {
-                        Collection<ChessMove> possibleMoves = myPiece.pieceMoves(board, position);
-                        for (ChessMove move : possibleMoves) {
-                            if (move.getEndPosition().equals(kingPosition)) {
-                                return true;
-                            }
+                if (isOppositeTeam(myPiece, teamColor)) {
+                    Collection<ChessMove> possibleMoves = myPiece.pieceMoves(board, position);
+                    for (ChessMove move : possibleMoves) {
+                        if (move.getEndPosition().equals(kingPosition)) {
+                            return true;
                         }
                     }
                 }
@@ -298,23 +296,21 @@ public class ChessGame {
                 ChessPosition position = new ChessPosition(i, j);
                 ChessPiece myPiece = board.getPiece(position);
 
-                if (myPiece != null) {
-                    if (myPiece.getTeamColor() == teamColor) {
-                        Collection<ChessMove> possibleMoves = myPiece.pieceMoves(board, position);
+                if (isSameTeam(myPiece, teamColor)) {
+                    Collection<ChessMove> possibleMoves = myPiece.pieceMoves(board, position);
 
-                        for (ChessMove move : possibleMoves) {
-                            try {
-                                ChessBoard copiedBoard = board.clone();
-                                ChessGame copiedGame = new ChessGame();
-                                copiedGame.setBoard(copiedBoard);
-                                copiedBoard.makeMove(move);
+                    for (ChessMove move : possibleMoves) {
+                        try {
+                            ChessBoard copiedBoard = board.clone();
+                            ChessGame copiedGame = new ChessGame();
+                            copiedGame.setBoard(copiedBoard);
+                            copiedBoard.makeMove(move);
 
-                                if (!copiedGame.isInCheck(teamColor)) {
-                                    return false; // Checkmate can be escaped
-                                }
-                            } catch (CloneNotSupportedException e) {
-                                throw new RuntimeException(e);
+                            if (!copiedGame.isInCheck(teamColor)) {
+                                return false; // Checkmate can be escaped
                             }
+                        } catch (CloneNotSupportedException e) {
+                            throw new RuntimeException(e);
                         }
                     }
                 }
@@ -332,22 +328,37 @@ public class ChessGame {
      * @return True if the specified team is in stalemate, otherwise false
      */
     public boolean isInStalemate(TeamColor teamColor) {
-        if (isInCheck(teamColor)) { return false; }
+        if (isInCheck(teamColor)) {
+            return false;
+        }
+        return !hasValidMoves(teamColor);
+    }
+
+    private boolean hasValidMoves(TeamColor teamColor) {
         for (int i = 1; i < 9; i++) {
             for (int j = 1; j < 9; j++) {
                 ChessPosition currentPosition = new ChessPosition(i, j);
                 ChessPiece currentPiece = board.getPiece(currentPosition);
-                if (currentPiece != null) {
-                    if (currentPiece.getTeamColor() == teamColor) {
-                        Collection<ChessMove> validMoves = validMoves(currentPosition);
-                        if (!validMoves.isEmpty()) {
-                            return false; // If any valid move exists, the team is not in stalemate
-                        }
-                    }
+                if (isSameTeam(currentPiece, teamColor) && !validMoves(currentPosition).isEmpty()) {
+                    return true; // If any valid move exists, the team is not in stalemate
                 }
             }
         }
-        return true; // Stalemate if no valid moves exist
+        return false; // Stalemate if no valid moves exist
+    }
+
+    private boolean isSameTeam(ChessPiece piece, TeamColor teamColor) {
+        if (piece != null) {
+            return piece.getTeamColor() == teamColor;
+        }
+        return false;
+    }
+
+    private boolean isOppositeTeam(ChessPiece piece, TeamColor teamColor) {
+        if (piece != null) {
+            return piece.getTeamColor() != teamColor;
+        }
+        return false;
     }
 
     /**
