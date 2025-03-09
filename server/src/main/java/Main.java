@@ -12,9 +12,7 @@ public class Main {
                 port = Integer.parseInt(args[0]);
             }
 
-            DataAccess dataAccess = new MemoryDataAccess(); // Quickly switch between MemoryDataAccess and SqlDataAccess
-
-            var server = new Server(dataAccess);
+            var server = new Server();
             server.run(port);
             port = server.port();
 

@@ -7,12 +7,6 @@ import service.UserService;
 import spark.*;
 
 public class Server {
-    private final DataAccess dataAccess;
-
-    public Server(DataAccess dataAccess) {
-        this.dataAccess = dataAccess;
-    }
-
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
@@ -22,6 +16,8 @@ public class Server {
             res.type("application/json");  // Set content type globally to JSON
             res.status(200); // Default response status, updated only if error is thrown
         });
+
+        DataAccess dataAccess = new MemoryDataAccess(); // Quickly switch between MemoryDataAccess and SqlDataAccess
 
         RouteManager routeManager = new RouteManager(dataAccess);
         routeManager.setupRoutes();
