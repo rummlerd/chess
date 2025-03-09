@@ -1,5 +1,7 @@
 import chess.*;
 
+import dataaccess.DataAccess;
+import dataaccess.MemoryDataAccess;
 import server.Server;
 
 public class Main {
@@ -10,7 +12,9 @@ public class Main {
                 port = Integer.parseInt(args[0]);
             }
 
-            var server = new Server();
+            DataAccess dataAccess = new MemoryDataAccess(); // Quickly switch between MemoryDataAccess and SqlDataAccess
+
+            var server = new Server(dataAccess);
             server.run(port);
             port = server.port();
 

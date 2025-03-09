@@ -2,15 +2,21 @@ package server;
 
 import dataaccess.DataAccess;
 import dataaccess.MemoryDataAccess;
+import service.GameService;
+import service.UserService;
 import spark.*;
 
 public class Server {
+    private final DataAccess dataAccess;
+
+    public Server(DataAccess dataAccess) {
+        this.dataAccess = dataAccess;
+    }
+
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
-
-        DataAccess dataAccess = new MemoryDataAccess();
 
         Spark.before((req, res) -> {
             res.type("application/json");  // Set content type globally to JSON
