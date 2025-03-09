@@ -48,16 +48,9 @@ public class ChessGame {
     }
 
     /**
-     * Enum identifying the 2 possible teams in a chess game
-     */
-    public enum TeamColor {
-        WHITE,
-        BLACK
-    }
-
-    /**
      * Gets all valid moves for a piece at the given location
      * Checks if en passant or castle moves are possible
+     *
      * @param startPosition the piece to get valid moves for
      * @return Set of valid moves for requested piece, or null if no piece at the startPosition
      */
@@ -82,7 +75,8 @@ public class ChessGame {
     /**
      * Unlike validMoves, this only validated normal moves: no en passant or castling moves
      * Filter out invalid moves from pieceMoves methods, which returns all possible moves even if they are invalid
-     * @param myPiece ChessPiece object up for movement
+     *
+     * @param myPiece       ChessPiece object up for movement
      * @param startPosition starting ChessPosition of ChessPiece up for movement
      * @return ArrayList of valid ChessMoves
      */
@@ -101,8 +95,9 @@ public class ChessGame {
 
     /**
      * Reviews the current board layout and previous move made to verify if en passant move is valid
-     * @param validMoves add valid en passant moves to this list
-     * @param myPiece ChessPiece object up for movement
+     *
+     * @param validMoves    add valid en passant moves to this list
+     * @param myPiece       ChessPiece object up for movement
      * @param startPosition starting ChessPosition of ChessPiece up for movement
      */
     private void checkEnPassant(Collection<ChessMove> validMoves, ChessPiece myPiece, ChessPosition startPosition) {
@@ -128,7 +123,8 @@ public class ChessGame {
 
     /**
      * Adds move to validMoves if any castling moves are possible for startingPiece
-     * @param validMoves add valid castling moves to this ArrayList
+     *
+     * @param validMoves    add valid castling moves to this ArrayList
      * @param startPosition starting ChessPosition of ChessPiece up for movement
      */
     private void checkCastling(Collection<ChessMove> validMoves, ChessPosition startPosition) {
@@ -148,8 +144,9 @@ public class ChessGame {
 
     /**
      * Abstract method for checking if castle is valid
-     * @param kingPos currentPosition, piece must be king (checked previously)
-     * @param direction positive (right) for king side, negative (left) for queen side
+     *
+     * @param kingPos     currentPosition, piece must be king (checked previously)
+     * @param direction   positive (right) for king side, negative (left) for queen side
      * @param whiteCastle false if castle move has been invalidated for white by previous moves
      * @param blackCastle false if castle move has been invalidated for black by previous moves
      * @return true if castle move valid to be added to validMoves
@@ -204,6 +201,7 @@ public class ChessGame {
 
     /**
      * Throws variety of errors when client attempts to make invalid move
+     *
      * @param move ChessMove needing validation
      * @throws InvalidMoveException wrong turn, invalid move, no piece at indicated starting ChessPosition
      */
@@ -225,9 +223,10 @@ public class ChessGame {
     /**
      * If en passant move was made, capture the enemy pawn
      * If castle move was made, move the rook as well
-     * @param myType PieceType of piece being moved
+     *
+     * @param myType        PieceType of piece being moved
      * @param startPosition ChessPosition being moved from
-     * @param endPosition ChessPosition being moved to
+     * @param endPosition   ChessPosition being moved to
      */
     private void handleSpecialMoves(ChessPiece.PieceType myType, ChessPosition startPosition, ChessPosition endPosition) {
         int startRow = startPosition.getRow();
@@ -250,10 +249,11 @@ public class ChessGame {
 
     /**
      * If any rook or king moves, change associated boolean to mark castle move as no longer possible
-     * @param myType PieceType, king or rook are of interest
-     * @param myColor teamColor, so correct booleans are changed
+     *
+     * @param myType        PieceType, king or rook are of interest
+     * @param myColor       teamColor, so correct booleans are changed
      * @param startPosition starting ChessPosition, used to determine which castle possibility to remove
-     * @param endPosition ending ChessPosition of move, to check if king moved > 2 spaces (castled)
+     * @param endPosition   ending ChessPosition of move, to check if king moved > 2 spaces (castled)
      */
     private void updateCastlingRights(ChessPiece.PieceType myType, TeamColor myColor, ChessPosition startPosition, ChessPosition endPosition) {
         int startColumn = startPosition.getColumn();
@@ -272,15 +272,13 @@ public class ChessGame {
             if (myColor == TeamColor.WHITE) {
                 if (startColumn > 4) {
                     whiteKingCastle = false;
-                }
-                else {
+                } else {
                     whiteQueenCastle = false;
                 }
             } else {
                 if (startColumn > 4) {
                     blackKingCastle = false;
-                }
-                else {
+                } else {
                     blackQueenCastle = false;
                 }
             }
@@ -300,7 +298,8 @@ public class ChessGame {
 
     /**
      * Iterates through entire board to check if any enemy pieces can capture piece in targetPosition
-     * @param teamColor Color of ChessPiece up for capture
+     *
+     * @param teamColor      Color of ChessPiece up for capture
      * @param targetPosition ChessPosition of ChessPiece up for capture
      * @return True if ChessPiece in targetPosition can be captured
      */
@@ -321,8 +320,9 @@ public class ChessGame {
 
     /**
      * Checks if a single piece can move to capture piece in targetPosition
-     * @param piece ChessPiece that may capture
-     * @param from starting ChessPosition of ChessPiece that may capture
+     *
+     * @param piece  ChessPiece that may capture
+     * @param from   starting ChessPosition of ChessPiece that may capture
      * @param target ChessPosition of ChessPiece that may be captured
      * @return true if piece can move to targetPosition
      */
@@ -434,6 +434,15 @@ public class ChessGame {
     }
 
     /**
+     * Gets the current chessboard
+     *
+     * @return the chessboard
+     */
+    public ChessBoard getBoard() {
+        return board;
+    }
+
+    /**
      * Sets this game's chessboard with a given board
      *
      * @param board the new board to use
@@ -443,11 +452,10 @@ public class ChessGame {
     }
 
     /**
-     * Gets the current chessboard
-     *
-     * @return the chessboard
+     * Enum identifying the 2 possible teams in a chess game
      */
-    public ChessBoard getBoard() {
-        return board;
+    public enum TeamColor {
+        WHITE,
+        BLACK
     }
 }

@@ -13,7 +13,7 @@ public class ChessBoard implements Cloneable {
     private ChessPiece[][] squares = new ChessPiece[8][8];
 
     public ChessBoard() {
-        
+
     }
 
     /**
@@ -100,6 +100,7 @@ public class ChessBoard implements Cloneable {
 
     /**
      * Finds the king of a given team
+     *
      * @param teamColor color of team
      * @return position of king
      */
@@ -125,8 +126,7 @@ public class ChessBoard implements Cloneable {
             for (int j = 0; j < 8; j++) {
                 if (squares[i][j] != null) {
                     builder.append(squares[i][j].toString());
-                }
-                else {
+                } else {
                     builder.append(' ');
                 }
                 builder.append('|');

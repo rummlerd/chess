@@ -19,18 +19,6 @@ public class ChessPiece implements Cloneable {
     }
 
     /**
-     * The various different chess piece options
-     */
-    public enum PieceType {
-        KING,
-        QUEEN,
-        BISHOP,
-        KNIGHT,
-        ROOK,
-        PAWN
-    }
-
-    /**
      * @return Which team this chess piece belongs to
      */
     public ChessGame.TeamColor getTeamColor() {
@@ -68,22 +56,45 @@ public class ChessPiece implements Cloneable {
     public String toString() {
         if (pieceColor == ChessGame.TeamColor.WHITE) {
             switch (type) {
-                case KING -> { return "K"; }
-                case QUEEN -> { return "Q"; }
-                case BISHOP -> { return "B"; }
-                case KNIGHT -> { return "N"; }
-                case ROOK -> { return "R"; }
-                case PAWN -> { return "P"; }
+                case KING -> {
+                    return "K";
+                }
+                case QUEEN -> {
+                    return "Q";
+                }
+                case BISHOP -> {
+                    return "B";
+                }
+                case KNIGHT -> {
+                    return "N";
+                }
+                case ROOK -> {
+                    return "R";
+                }
+                case PAWN -> {
+                    return "P";
+                }
             }
-        }
-        else {
+        } else {
             switch (type) {
-                case KING -> { return "k"; }
-                case QUEEN -> { return "q"; }
-                case BISHOP -> { return "b"; }
-                case KNIGHT -> { return "n"; }
-                case ROOK -> { return "r"; }
-                case PAWN -> { return "p"; }
+                case KING -> {
+                    return "k";
+                }
+                case QUEEN -> {
+                    return "q";
+                }
+                case BISHOP -> {
+                    return "b";
+                }
+                case KNIGHT -> {
+                    return "n";
+                }
+                case ROOK -> {
+                    return "r";
+                }
+                case PAWN -> {
+                    return "p";
+                }
             }
         }
 
@@ -108,5 +119,17 @@ public class ChessPiece implements Cloneable {
     public ChessPiece clone() throws CloneNotSupportedException {
         return (ChessPiece) super.clone(); // Shallow clone
         // No need to deep clone pieceColor or type because they are enums
+    }
+
+    /**
+     * The various different chess piece options
+     */
+    public enum PieceType {
+        KING,
+        QUEEN,
+        BISHOP,
+        KNIGHT,
+        ROOK,
+        PAWN
     }
 }
