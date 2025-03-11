@@ -458,4 +458,18 @@ public class ChessGame {
         WHITE,
         BLACK
     }
+
+    @Override
+    public String toString() {
+        return "ChessGame{" +
+                "\nteam=" + team +
+                ", \nboard=\n" + board.toString() +
+                ", \nlastMove=" + lastMove +
+                ", \nenPassantValid=" + enPassantValid +
+                ", \nwhiteQueenCastle=" + whiteQueenCastle +
+                ", \nwhiteKingCastle=" + whiteKingCastle +
+                ", \nblackQueenCastle=" + blackQueenCastle +
+                ", \nblackKingCastle=" + blackKingCastle +
+                '}';
+    }
 }
