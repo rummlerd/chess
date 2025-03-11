@@ -7,6 +7,7 @@ import httpmessages.GameResult;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
 import java.util.*;
@@ -40,7 +41,9 @@ public class SqlDataAccess implements DataAccess {
         } catch (DataAccessException e) {
             if (e.getMessage().equals("unauthorized")) {
                 String statement = "INSERT INTO userdata (username, password, email) VALUES (?, ?, ?)";
-                executeUpdate(statement, user.username(), user.password(), user.email());
+                // Hash password
+                String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
+                executeUpdate(statement, user.username(), hashedPassword, user.email());
             }
             else {
                 throw e;
@@ -51,10 +54,15 @@ public class SqlDataAccess implements DataAccess {
     @Override
     public UserData getUser(String username) throws DataAccessException {
         List<String> res = executeQuery("SELECT * FROM userdata WHERE username='" + username + "'", 3).getFirst();
-        if (res.getFirst() == null) { // FIXME may be able to delete this for loop entirely, once passing all tests try it
-            throw new DataAccessException("unauthorized");
-        }
         return new UserData(res.get(0), res.get(1), res.get(2));
+    }
+
+    @Override
+    public boolean verifyUser(String username, String providedClearTextPassword) throws DataAccessException {
+        // read the previously hashed password from the database
+        var hashedPassword = executeQuery("SELECT password FROM userdata WHERE username='" + username + "'", 1).getFirst().getFirst();
+
+        return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
     }
 
     @Override
@@ -118,12 +126,7 @@ public class SqlDataAccess implements DataAccess {
         try {
             List<List<String>> res = executeQuery("SELECT * FROM gamedata", 4);
             for (List<String> row : res) {
-                gameResults.add(new GameResult(
-                        Integer.parseInt(row.get(0)),
-                        row.get(1),
-                        row.get(2),
-                        row.get(3)
-                ));
+                gameResults.add(new GameResult(Integer.parseInt(row.get(0)), row.get(1), row.get(2), row.get(3)));
             }
             return gameResults;
         } catch (DataAccessException e) {
@@ -135,7 +138,7 @@ public class SqlDataAccess implements DataAccess {
     }
 
     @Override
-    public void addUser(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
+    public void addUserToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
         AuthData authData = getAuth(authToken);
         GameData game = getGame(gameID);
         String statement = "UPDATE gamedata SET whiteUsername=?, blackUsername=?, game=? WHERE gameID=?";

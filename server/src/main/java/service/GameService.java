@@ -30,6 +30,6 @@ public class GameService {
         if (playerColor == null || gameID < 1000) {
             throw new DataAccessException("bad request");
         }
-        dataAccess.addUser(authToken, playerColor, gameID);
+        dataAccess.addUserToGame(authToken, playerColor, gameID);
     }
 }

@@ -30,7 +30,7 @@ public class UserService {
 
     public AuthData login(UserData user) throws DataAccessException {
         String username = user.username();
-        if (dataAccess.getUser(username).password().equals(user.password())) {
+        if (dataAccess.verifyUser(username, user.password())) {
             return new AuthData(dataAccess.createAuth(username), username);
         }
         throw new DataAccessException("unauthorized");

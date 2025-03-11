@@ -27,6 +27,15 @@ public interface DataAccess {
     UserData getUser(String username) throws DataAccessException;
 
     /**
+     * Hashes inputted password and compares to hashed password stored in database
+     *
+     * @param username user trying to log in
+     * @param providedClearTextPassword password provided in login request body
+     * @return true if passwords match
+     */
+    boolean verifyUser(String username, String providedClearTextPassword) throws DataAccessException;
+
+    /**
      * Create a new authorization. Call after every login or registration. Returns an authToken which can be sent to the client for further actions
      * @param username associated with new authToken
      * @return authToken
@@ -76,5 +85,5 @@ public interface DataAccess {
      * @param gameID game user wishes to join
      * @throws DataAccessException 401 unauthorized, 403 already taken, 500 game not found
      */
-    void addUser(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException;
+    void addUserToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException;
 }

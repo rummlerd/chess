@@ -40,6 +40,11 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public boolean verifyUser(String username, String password) throws DataAccessException {
+        return getUser(username).password().equals(password);
+    }
+
+    @Override
     public String createAuth(String username) throws DataAccessException {
         getUser(username); // getUser will throw error if username not found in memory
 
@@ -98,7 +103,7 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
-    public void addUser(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
+    public void addUserToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
         AuthData authData = getAuth(authToken);
         GameData game = getGame(gameID);
         if (playerColor == ChessGame.TeamColor.WHITE && game.whiteUsername() == null) {
