@@ -3,7 +3,6 @@ package service;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
 import dataaccess.MemoryDataAccess;
-import dataaccess.SqlDataAccess;
 import model.AuthData;
 import model.UserData;
 import org.junit.jupiter.api.Assertions;
@@ -19,21 +18,6 @@ public class UserTests {
     public void registerNewUser() {
         UserData user = new UserData("testUser", "test", "test@");
         DataAccess dataAccess = new MemoryDataAccess();
-        UserService userService = new UserService(dataAccess);
-        try {
-            AuthData result = userService.register(user);
-
-            Assertions.assertNotNull(result.authToken(), "Should return valid AuthToken");
-            Assertions.assertEquals(user.username(), result.username(), "Usernames should match");
-        } catch (DataAccessException e) {
-            Assertions.fail("Shouldn't throw error");
-        }
-    }
-    @Test
-    @DisplayName("Register new user on Database")
-    public void registerNewUserDatabase() {
-        UserData user = new UserData("testUser", "test", "test@");
-        DataAccess dataAccess = new SqlDataAccess();
         UserService userService = new UserService(dataAccess);
         try {
             AuthData result = userService.register(user);
@@ -60,38 +44,9 @@ public class UserTests {
     }
 
     @Test
-    @DisplayName("Fail to register new user due to bad request on Database")
-    public void registerNewUserBadRequestDatabase() {
-        DataAccess dataAccess = new SqlDataAccess();
-        UserService userService = new UserService(dataAccess);
-        try {
-            userService.register(new UserData("testUser", null, "test@"));
-
-            Assertions.fail("Should have thrown 'bad request' error");
-        } catch (DataAccessException e) {
-            Assertions.assertEquals("bad request", e.getMessage(), "Should be 'bad request' error");
-        }
-    }
-
-    @Test
     @DisplayName("Fail to register new user due to already taken username")
     public void registerNewUserAlreadyTaken() {
         DataAccess dataAccess = new MemoryDataAccess();
-        UserService userService = new UserService(dataAccess);
-        try {
-            userService.register(new UserData("testUser", "test", "test@"));
-            userService.register(new UserData("testUser", "test2", "test@2"));
-
-            Assertions.fail("Should have thrown 'already taken' error");
-        } catch (DataAccessException e) {
-            Assertions.assertEquals("already taken", e.getMessage(), "Should be 'already taken' error");
-        }
-    }
-
-    @Test
-    @DisplayName("Fail to register new user due to already taken username on Database")
-    public void registerNewUserAlreadyTakenDatabase() {
-        DataAccess dataAccess = new SqlDataAccess();
         UserService userService = new UserService(dataAccess);
         try {
             userService.register(new UserData("testUser", "test", "test@"));

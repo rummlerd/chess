@@ -4,7 +4,7 @@ import java.sql.*;
 import java.util.Properties;
 
 public class DatabaseManager {
-    private static final String DATABASE_NAME;
+    private static String databaseName;
     private static final String USER;
     private static final String PASSWORD;
     private static final String CONNECTION_URL;
@@ -20,7 +20,7 @@ public class DatabaseManager {
                 }
                 Properties props = new Properties();
                 props.load(propStream);
-                DATABASE_NAME = props.getProperty("db.name");
+                databaseName = props.getProperty("db.name");
                 USER = props.getProperty("db.user");
                 PASSWORD = props.getProperty("db.password");
 
@@ -33,12 +33,17 @@ public class DatabaseManager {
         }
     }
 
+    public static void renameDatabase(String name) {
+        databaseName = name;
+    }
+
     /**
      * Creates the database if it does not already exist.
      */
     static void createDatabase() throws DataAccessException {
+        System.out.println("\nCreating Database: " + databaseName);
         try {
-            var statement = "CREATE DATABASE IF NOT EXISTS " + DATABASE_NAME;
+            var statement = "CREATE DATABASE IF NOT EXISTS " + databaseName;
             var conn = DriverManager.getConnection(CONNECTION_URL, USER, PASSWORD);
             try (var preparedStatement = conn.prepareStatement(statement)) {
                 preparedStatement.executeUpdate();
@@ -63,7 +68,7 @@ public class DatabaseManager {
     static Connection getConnection() throws DataAccessException {
         try {
             var conn = DriverManager.getConnection(CONNECTION_URL, USER, PASSWORD);
-            conn.setCatalog(DATABASE_NAME);
+            conn.setCatalog(databaseName);
             return conn;
         } catch (SQLException e) {
             throw new DataAccessException(e.getMessage());

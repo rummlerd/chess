@@ -184,6 +184,7 @@ public class SqlDataAccess implements DataAccess {
     };
 
     private void configureDatabase() throws Exception {
+        System.out.println("\nConfiguring Database\n");
         DatabaseManager.createDatabase();
         try (var conn = DatabaseManager.getConnection()) {
             for (var statement : createStatements) {
