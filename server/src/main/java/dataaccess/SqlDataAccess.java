@@ -59,9 +59,9 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public void clear() throws DataAccessException {
-        executeUpdate("DELETE FROM authdata");
-        executeUpdate("DELETE FROM gamedata");
-        executeUpdate("DELETE FROM userdata");
+        executeUpdate("DELETE FROM AuthData");
+        executeUpdate("DELETE FROM GameData");
+        executeUpdate("DELETE FROM UserData");
     }
 
     @Override
@@ -71,7 +71,7 @@ public class SqlDataAccess implements DataAccess {
             throw new DataAccessException("already taken");
         } catch (DataAccessException e) {
             if (e.getMessage().equals("unauthorized")) {
-                String statement = "INSERT INTO userdata (username, password, email) VALUES (?, ?, ?)";
+                String statement = "INSERT INTO UserData (username, password, email) VALUES (?, ?, ?)";
                 // Hash password
                 String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
                 executeUpdate(statement, user.username(), hashedPassword, user.email());
@@ -83,14 +83,14 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        List<String> res = executeQuery("SELECT * FROM userdata WHERE username='" + username + "'", 3).getFirst();
+        List<String> res = executeQuery("SELECT * FROM UserData WHERE username='" + username + "'", 3).getFirst();
         return new UserData(res.get(0), res.get(1), res.get(2));
     }
 
     @Override
     public boolean verifyUser(String username, String providedClearTextPassword) throws DataAccessException {
         // Read the previously hashed password from the database
-        var hashedPassword = executeQuery("SELECT password FROM userdata WHERE username='" + username + "'", 1).getFirst().getFirst();
+        var hashedPassword = executeQuery("SELECT password FROM UserData WHERE username='" + username + "'", 1).getFirst().getFirst();
 
         return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
     }
@@ -100,7 +100,7 @@ public class SqlDataAccess implements DataAccess {
         getUser(username); // Throws unauthorized if user does not exist
 
         String authToken = UUID.randomUUID().toString();
-        String statement = "INSERT INTO authdata (authToken, username) VALUES (?, ?)";
+        String statement = "INSERT INTO AuthData (authToken, username) VALUES (?, ?)";
         executeUpdate(statement, authToken, username);
 
         return authToken;
@@ -108,14 +108,14 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        List<String> res = executeQuery("SELECT * FROM authdata WHERE authToken='" + authToken + "'", 2).getFirst();
+        List<String> res = executeQuery("SELECT * FROM AuthData WHERE authToken='" + authToken + "'", 2).getFirst();
         return new AuthData(res.getFirst(), res.getLast());
     }
 
     @Override
     public void deleteAuth(String authToken) throws DataAccessException {
         getAuth(authToken); // Throws error if unauthorized
-        String statement = "DELETE FROM authdata WHERE authToken=?";
+        String statement = "DELETE FROM AuthData WHERE authToken=?";
         executeUpdate(statement, authToken);
     }
 
@@ -136,7 +136,7 @@ public class SqlDataAccess implements DataAccess {
             }
         }
         ChessGame game = new ChessGame();
-        String statement = "INSERT INTO gamedata (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
+        String statement = "INSERT INTO GameData (gameID, whiteUsername, blackUsername, gameName, game) VALUES (?, ?, ?, ?, ?)";
         executeUpdate(statement, gameID, null, null, gameName, game);
 
         return gameID;
@@ -144,7 +144,7 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
-        List<String> res = executeQuery("SELECT * FROM gamedata WHERE gameID='" + gameID + "'", 5).getFirst();
+        List<String> res = executeQuery("SELECT * FROM GameData WHERE gameID='" + gameID + "'", 5).getFirst();
         ChessGame game = gson.fromJson(res.get(4), ChessGame.class);
         return new GameData(gameID, res.get(1), res.get(2), res.get(3), game);
     }
@@ -154,7 +154,7 @@ public class SqlDataAccess implements DataAccess {
         getAuth(authToken);
         List<GameResult> gameResults = new ArrayList<>();
         try {
-            List<List<String>> res = executeQuery("SELECT * FROM gamedata", 4);
+            List<List<String>> res = executeQuery("SELECT * FROM GameData", 4);
             for (List<String> row : res) {
                 gameResults.add(new GameResult(Integer.parseInt(row.get(0)), row.get(1), row.get(2), row.get(3)));
             }
@@ -171,7 +171,7 @@ public class SqlDataAccess implements DataAccess {
     public void addUserToGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
         AuthData authData = getAuth(authToken);
         GameData game = getGame(gameID);
-        String statement = "UPDATE gamedata SET whiteUsername=?, blackUsername=?, game=? WHERE gameID=?";
+        String statement = "UPDATE GameData SET whiteUsername=?, blackUsername=?, game=? WHERE gameID=?";
         if (playerColor == ChessGame.TeamColor.WHITE && game.whiteUsername() == null) {
             executeUpdate(statement, authData.username(), game.blackUsername(), game.game(), gameID);
         } else if (playerColor == ChessGame.TeamColor.BLACK && game.blackUsername() == null) {

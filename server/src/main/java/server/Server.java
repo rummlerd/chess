@@ -16,7 +16,7 @@ public class Server {
             res.status(200); // Default response status, updated only if error is thrown
         });
 
-        DataAccess dataAccess = new MemoryDataAccess(); // Quickly switch between MemoryDataAccess and SqlDataAccess
+        DataAccess dataAccess = new SqlDataAccess(); // Quickly switch between MemoryDataAccess and SqlDataAccess
 
         RouteManager routeManager = new RouteManager(dataAccess);
         routeManager.setupRoutes();
