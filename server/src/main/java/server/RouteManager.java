@@ -49,7 +49,7 @@ public class RouteManager {
         Spark.put("/game", this::joinGame);
     }
 
-    private Object clearApplication(Request req, Response res) {
+    private Object clearApplication(Request req, Response res) throws DataAccessException {
         userService.clearApplication();
         return "{}";
     }

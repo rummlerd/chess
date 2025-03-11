@@ -12,7 +12,7 @@ public class UserService {
         this.dataAccess = dataAccess;
     }
 
-    public void clearApplication() {
+    public void clearApplication() throws DataAccessException {
         dataAccess.clear();
     }
 

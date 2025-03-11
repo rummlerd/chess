@@ -11,7 +11,7 @@ public interface DataAccess {
     /**
      * Clear all users, games, and authTokens from the database, for use in testing
      */
-    void clear();
+    void clear() throws DataAccessException;
 
     /**
      * Creates a new user. Throws a 403 already taken error if user already exists
