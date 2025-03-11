@@ -26,8 +26,8 @@ public class GameService {
     }
 
     public void joinGame(String authToken, ChessGame.TeamColor playerColor, int gameID) throws DataAccessException {
-        // Validate input (gameID must not be null)
-        if (playerColor == null || gameID == 0) {
+        // Validate input (playerColor must not be null, gameID must be 1000 or greater)
+        if (playerColor == null || gameID < 1000) {
             throw new DataAccessException("bad request");
         }
         dataAccess.addUser(authToken, playerColor, gameID);
