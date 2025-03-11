@@ -7,11 +7,7 @@ import org.junit.jupiter.api.*;
 import service.GameService;
 import service.UserService;
 
-import java.io.*;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.List;
-import java.util.Properties;
 import java.util.UUID;
 
 public class SqlDAOTests {
@@ -21,7 +17,7 @@ public class SqlDAOTests {
     private static final UserData user = new UserData("testUser", "test", "test@");
 
     @BeforeAll
-    public static void switchToTestDB() throws Exception {
+    public static void switchToTestDB() {
         dataAccess = new SqlDataAccess();
         userService = new UserService(dataAccess);
         gameService = new GameService(dataAccess);
