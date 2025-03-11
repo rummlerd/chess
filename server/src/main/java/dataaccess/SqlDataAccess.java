@@ -4,19 +4,50 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.GsonBuilder;
 import httpmessages.GameResult;
-import model.AuthData;
-import model.GameData;
-import model.UserData;
+import model.*;
 import org.mindrot.jbcrypt.BCrypt;
 
 import java.sql.SQLException;
-import java.util.*;
-import java.util.zip.Adler32;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Random;
+import java.util.UUID;
 
 import static java.sql.Types.NULL;
 
 public class SqlDataAccess implements DataAccess {
     private final Gson gson = new GsonBuilder().serializeNulls().create();
+    private final String[] createStatements = {
+            """
+            CREATE TABLE IF NOT EXISTS UserData (
+            `username` VARCHAR(256) NOT NULL UNIQUE,
+            `password` VARCHAR(256) NOT NULL,
+            `email` VARCHAR(256) NOT NULL,
+            PRIMARY KEY (`username`)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS AuthData (
+            `authToken` VARCHAR(256) NOT NULL UNIQUE,
+            `username` VARCHAR(256) NOT NULL,
+            PRIMARY KEY (`authToken`),
+            FOREIGN KEY (`username`) REFERENCES UserData(`username`) ON DELETE CASCADE
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+            """,
+            """
+            CREATE TABLE IF NOT EXISTS GameData (
+            `gameID` INT NOT NULL UNIQUE,
+            `whiteUsername` VARCHAR(256),
+            `blackUsername` VARCHAR(256),
+            `gameName` VARCHAR(256) NOT NULL,
+            `game` TEXT NOT NULL,
+            PRIMARY KEY (`gameID`),
+            FOREIGN KEY (`whiteUsername`) REFERENCES UserData(`username`) ON DELETE SET NULL,
+            FOREIGN KEY (`blackUsername`) REFERENCES UserData(`username`) ON DELETE SET NULL,
+            INDEX(gameName)
+            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
+            """
+    };
 
     public SqlDataAccess() {
         try {
@@ -44,8 +75,7 @@ public class SqlDataAccess implements DataAccess {
                 // Hash password
                 String hashedPassword = BCrypt.hashpw(user.password(), BCrypt.gensalt());
                 executeUpdate(statement, user.username(), hashedPassword, user.email());
-            }
-            else {
+            } else {
                 throw e;
             }
         }
@@ -59,7 +89,7 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public boolean verifyUser(String username, String providedClearTextPassword) throws DataAccessException {
-        // read the previously hashed password from the database
+        // Read the previously hashed password from the database
         var hashedPassword = executeQuery("SELECT password FROM userdata WHERE username='" + username + "'", 1).getFirst().getFirst();
 
         return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
@@ -97,7 +127,7 @@ public class SqlDataAccess implements DataAccess {
         boolean uniqueGameID = false;
         while (!uniqueGameID) {
             gameID = 1000 + random.nextInt(9000);
-            try{
+            try {
                 getGame(gameID);
             } catch (DataAccessException e) {
                 if (e.getMessage().contains("unauthorized")) {
@@ -156,17 +186,13 @@ public class SqlDataAccess implements DataAccess {
             try (var ps = conn.prepareStatement(statement)) {
                 for (var i = 0; i < params.length; i++) {
                     var param = params[i];
-                    if (param instanceof String p) {
-                        ps.setString(i + 1, p);
-                    }
-                    else if (param instanceof Integer p) {
-                        ps.setInt(i + 1, p);
-                    }
-                    else if (param instanceof ChessGame p) {
-                        ps.setString(i + 1, gson.toJson(p));
-                    }
-                    else if (param == null) {
-                        ps.setNull(i + 1, NULL);
+                    switch (param) {
+                        case String p -> ps.setString(i + 1, p);
+                        case Integer p -> ps.setInt(i + 1, p);
+                        case ChessGame p -> ps.setString(i + 1, gson.toJson(p));
+                        case null -> ps.setNull(i + 1, NULL);
+                        default -> {
+                        }
                     }
                 }
                 ps.executeUpdate();
@@ -189,7 +215,7 @@ public class SqlDataAccess implements DataAccess {
                         results.add(row);
                     }
                     if (results.isEmpty()) {
-                        throw new DataAccessException ("unauthorized");
+                        throw new DataAccessException("unauthorized");
                     }
 
                     return results;
@@ -199,38 +225,6 @@ public class SqlDataAccess implements DataAccess {
             throw new DataAccessException("unable to execute query: " + e.getMessage());
         }
     }
-
-    private final String[] createStatements = {
-            """
-            CREATE TABLE IF NOT EXISTS UserData (
-            `username` VARCHAR(256) NOT NULL UNIQUE,
-            `password` VARCHAR(256) NOT NULL,
-            `email` VARCHAR(256) NOT NULL,
-            PRIMARY KEY (`username`)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS AuthData (
-            `authToken` VARCHAR(256) NOT NULL UNIQUE,
-            `username` VARCHAR(256) NOT NULL,
-            PRIMARY KEY (`authToken`),
-            FOREIGN KEY (`username`) REFERENCES UserData(`username`) ON DELETE CASCADE
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-            """,
-            """
-            CREATE TABLE IF NOT EXISTS GameData (
-            `gameID` INT NOT NULL UNIQUE,
-            `whiteUsername` VARCHAR(256),
-            `blackUsername` VARCHAR(256),
-            `gameName` VARCHAR(256) NOT NULL,
-            `game` TEXT NOT NULL,
-            PRIMARY KEY (`gameID`),
-            FOREIGN KEY (`whiteUsername`) REFERENCES UserData(`username`) ON DELETE SET NULL,
-            FOREIGN KEY (`blackUsername`) REFERENCES UserData(`username`) ON DELETE SET NULL,
-            INDEX(gameName)
-            ) ENGINE=InnoDB DEFAULT CHARSET=utf8mb4 COLLATE=utf8mb4_0900_ai_ci
-            """
-    };
 
     private void configureDatabase() throws Exception {
         DatabaseManager.createDatabase();
