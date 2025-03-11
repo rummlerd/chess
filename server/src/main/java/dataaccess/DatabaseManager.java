@@ -1,40 +1,47 @@
 package dataaccess;
 
+import java.io.FileInputStream;
 import java.sql.*;
 import java.util.Properties;
 
 public class DatabaseManager {
     private static String databaseName;
-    private static final String USER;
-    private static final String PASSWORD;
-    private static final String CONNECTION_URL;
+    private static String user;
+    private static String password;
+    private static String connectionUrl;
+    private static Properties dbProperties;
+    private static final String DB_PROPERTIES_PATH = "src/main/resources/db.properties";
 
     /*
      * Load the database information for the db.properties file.
      */
-    static {
-        try {
-            try (var propStream = Thread.currentThread().getContextClassLoader().getResourceAsStream("db.properties")) {
-                if (propStream == null) {
-                    throw new Exception("Unable to load db.properties");
-                }
-                Properties props = new Properties();
-                props.load(propStream);
-                databaseName = props.getProperty("db.name");
-                USER = props.getProperty("db.user");
-                PASSWORD = props.getProperty("db.password");
+    static void loadProperties() {
+        if (dbProperties == null) {
+            try {
+                try (var propStream = new FileInputStream(DB_PROPERTIES_PATH)) {
+                    // propStream was originally loading from compile resources: Thread.currentThread().getContextClassLoader().getResourceAsStream("db.properties")
+                    // if (propStream == null) {
+                    //    throw new Exception("Unable to load db.properties");
+                    //}
+                    dbProperties = new Properties();
+                    dbProperties.load(propStream);
+                    databaseName = dbProperties.getProperty("db.name");
+                    user = dbProperties.getProperty("db.user");
+                    password = dbProperties.getProperty("db.password");
 
-                var host = props.getProperty("db.host");
-                var port = Integer.parseInt(props.getProperty("db.port"));
-                CONNECTION_URL = String.format("jdbc:mysql://%s:%d", host, port);
+                    var host = dbProperties.getProperty("db.host");
+                    var port = Integer.parseInt(dbProperties.getProperty("db.port"));
+                    connectionUrl = String.format("jdbc:mysql://%s:%d", host, port);
+                }
+            } catch (Exception ex) {
+                throw new RuntimeException("unable to process db.properties. " + ex.getMessage());
             }
-        } catch (Exception ex) {
-            throw new RuntimeException("unable to process db.properties. " + ex.getMessage());
         }
     }
 
-    public static void renameDatabase(String name) {
-        databaseName = name;
+    public static void reloadProperties() {
+        dbProperties = null; // Force reload on next call
+        loadProperties();
     }
 
     /**
@@ -43,7 +50,7 @@ public class DatabaseManager {
     static void createDatabase() throws DataAccessException {
         try {
             var statement = "CREATE DATABASE IF NOT EXISTS " + databaseName;
-            var conn = DriverManager.getConnection(CONNECTION_URL, USER, PASSWORD);
+            var conn = DriverManager.getConnection(connectionUrl, user, password);
             try (var preparedStatement = conn.prepareStatement(statement)) {
                 preparedStatement.executeUpdate();
             }
@@ -65,8 +72,9 @@ public class DatabaseManager {
      * </code>
      */
     static Connection getConnection() throws DataAccessException {
+        loadProperties();
         try {
-            var conn = DriverManager.getConnection(CONNECTION_URL, USER, PASSWORD);
+            var conn = DriverManager.getConnection(connectionUrl, user, password);
             conn.setCatalog(databaseName);
             return conn;
         } catch (SQLException e) {

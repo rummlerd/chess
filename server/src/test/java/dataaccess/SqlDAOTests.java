@@ -1,12 +1,20 @@
-package service;
+package dataaccess;
 
 import chess.ChessGame;
-import dataaccess.*;
 import httpmessages.GameResult;
 import model.*;
 import org.junit.jupiter.api.*;
+import service.GameService;
+import service.UserService;
 
+import java.io.FileInputStream;
+import java.io.FileOutputStream;
+import java.io.InputStream;
+import java.io.OutputStream;
+import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.List;
+import java.util.Properties;
 import java.util.UUID;
 
 public class SqlDAOTests {
@@ -14,10 +22,30 @@ public class SqlDAOTests {
     private static UserService userService;
     private static GameService gameService;
     private static final UserData user = new UserData("testUser", "test", "test@");
+    private static final String DB_PROPERTIES_PATH = "src/main/resources/db.properties";
+    private static String originalPropertiesContent; // Store original contents as a string
 
     @BeforeAll
     public static void switchToTestDB() throws Exception {
-        DatabaseManager.renameDatabase("test_db");
+        // Read and store the original db.properties content
+        originalPropertiesContent = Files.readString(Paths.get(DB_PROPERTIES_PATH));
+
+        // Load properties from the file
+        Properties testProps = new Properties();
+        try (InputStream input = new FileInputStream(DB_PROPERTIES_PATH)) {
+            testProps.load(input);
+        }
+
+        // Modify only the database name for testing
+        testProps.setProperty("db.name", "test_db");
+
+        // Write the modified properties back to db.properties
+        try (OutputStream output = new FileOutputStream(DB_PROPERTIES_PATH)) {
+            testProps.store(output, "Modified for testing");
+        }
+
+        // Reload properties in memory
+        DatabaseManager.reloadProperties();
 
         dataAccess = new SqlDataAccess();
         userService = new UserService(dataAccess);
@@ -31,7 +59,8 @@ public class SqlDAOTests {
 
     @AfterAll
     public static void switchToChessDB() throws Exception {
-        DatabaseManager.renameDatabase("chess");
+        Files.writeString(Paths.get(DB_PROPERTIES_PATH), originalPropertiesContent);
+        DatabaseManager.reloadProperties();
     }
     
     @Test
