@@ -17,14 +17,14 @@ public class SqlDAOTests {
     private static final UserData user = new UserData("testUser", "test", "test@");
 
     @BeforeAll
-    public static void switchToTestDB() {
+    public static void setUpServices() {
         dataAccess = new SqlDataAccess();
         userService = new UserService(dataAccess);
         gameService = new GameService(dataAccess);
     }
 
     @BeforeEach
-    public void resetTestDB() throws Exception {
+    public void resetTestDb() throws Exception {
         userService.clearApplication();
     }
 

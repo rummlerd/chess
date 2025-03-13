@@ -7,6 +7,8 @@ import httpmessages.GameResult;
 import model.*;
 import org.mindrot.jbcrypt.BCrypt;
 
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
@@ -83,14 +85,14 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public UserData getUser(String username) throws DataAccessException {
-        List<String> res = executeQuery("SELECT * FROM UserData WHERE username='" + username + "'", 3).getFirst();
+        List<String> res = executeQuery("SELECT * FROM UserData WHERE username=?", username).getFirst();
         return new UserData(res.get(0), res.get(1), res.get(2));
     }
 
     @Override
     public boolean verifyUser(String username, String providedClearTextPassword) throws DataAccessException {
         // Read the previously hashed password from the database
-        var hashedPassword = executeQuery("SELECT password FROM UserData WHERE username='" + username + "'", 1).getFirst().getFirst();
+        var hashedPassword = executeQuery("SELECT password FROM UserData WHERE username=?", username).getFirst().getFirst();
 
         return BCrypt.checkpw(providedClearTextPassword, hashedPassword);
     }
@@ -108,7 +110,7 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
-        List<String> res = executeQuery("SELECT * FROM AuthData WHERE authToken='" + authToken + "'", 2).getFirst();
+        List<String> res = executeQuery("SELECT * FROM AuthData WHERE authToken=?", authToken).getFirst();
         return new AuthData(res.getFirst(), res.getLast());
     }
 
@@ -144,7 +146,7 @@ public class SqlDataAccess implements DataAccess {
 
     @Override
     public GameData getGame(int gameID) throws DataAccessException {
-        List<String> res = executeQuery("SELECT * FROM GameData WHERE gameID='" + gameID + "'", 5).getFirst();
+        List<String> res = executeQuery("SELECT * FROM GameData WHERE gameID=?", gameID).getFirst();
         ChessGame game = gson.fromJson(res.get(4), ChessGame.class);
         return new GameData(gameID, res.get(1), res.get(2), res.get(3), game);
     }
@@ -154,7 +156,7 @@ public class SqlDataAccess implements DataAccess {
         getAuth(authToken);
         List<GameResult> gameResults = new ArrayList<>();
         try {
-            List<List<String>> res = executeQuery("SELECT * FROM GameData", 4);
+            List<List<String>> res = executeQuery("SELECT * FROM GameData");
             for (List<String> row : res) {
                 gameResults.add(new GameResult(Integer.parseInt(row.get(0)), row.get(1), row.get(2), row.get(3)));
             }
@@ -184,17 +186,7 @@ public class SqlDataAccess implements DataAccess {
     private void executeUpdate(String statement, Object... params) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(statement)) {
-                for (var i = 0; i < params.length; i++) {
-                    var param = params[i];
-                    switch (param) {
-                        case String p -> ps.setString(i + 1, p);
-                        case Integer p -> ps.setInt(i + 1, p);
-                        case ChessGame p -> ps.setString(i + 1, gson.toJson(p));
-                        case null -> ps.setNull(i + 1, NULL);
-                        default -> {
-                        }
-                    }
-                }
+                prepareStatement(ps, params);
                 ps.executeUpdate();
             }
         } catch (SQLException e) {
@@ -202,27 +194,68 @@ public class SqlDataAccess implements DataAccess {
         }
     }
 
-    private List<List<String>> executeQuery(String statement, int colsCount) throws DataAccessException {
+    /**
+     * Helper method to handle adding parameters to the prepared statement
+     *
+     * @param ps prepared statement
+     * @param params parameters to replace ? placeholders in SQL statement
+     */
+    private void prepareStatement(PreparedStatement ps, Object... params) throws SQLException {
+        for (var i = 0; i < params.length; i++) {
+            var param = params[i];
+            switch (param) {
+                case String p -> ps.setString(i + 1, p);
+                case Integer p -> ps.setInt(i + 1, p);
+                case ChessGame p -> ps.setString(i + 1, gson.toJson(p));
+                case null -> ps.setNull(i + 1, NULL);
+                default -> {
+                }
+            }
+        }
+    }
+
+    /**
+     * Execute provided query statement
+     *
+     * @param statement string to become prepared statement
+     * @return retrieved values from database as a list of a list of strings
+     */
+    private List<List<String>> executeQuery(String statement, Object... params) throws DataAccessException {
         try (var conn = DatabaseManager.getConnection()) {
             try (var ps = conn.prepareStatement(statement)) {
-                try (var rs = ps.executeQuery()) {
-                    List<List<String>> results = new ArrayList<>();
-                    while (rs.next()) {
-                        List<String> row = new ArrayList<>();
-                        for (int i = 0; i < colsCount; i++) {
-                            row.add(rs.getString(i + 1));
-                        }
-                        results.add(row);
-                    }
-                    if (results.isEmpty()) {
-                        throw new DataAccessException("unauthorized");
-                    }
+                prepareStatement(ps, params);
 
-                    return results;
-                }
+                return processQueryResult(ps.executeQuery());
             }
         } catch (SQLException e) {
             throw new DataAccessException("unable to execute query: " + e.getMessage());
+        }
+    }
+
+    /**
+     * Given a ResultSet object, this method returns rows of length specified
+     *
+     * @param rs ResultSet object to extract values from
+     * @return Strings extracted from rs
+     * @throws SQLException if anything with executeQuery fails
+     * @throws DataAccessException if requested object was not found, meaning the request is unauthorized (invalid username or authToken)
+     */
+    private List<List<String>> processQueryResult(ResultSet rs) throws SQLException, DataAccessException {
+        try (rs) {
+            List<List<String>> results = new ArrayList<>();
+            int columnCount = rs.getMetaData().getColumnCount();
+            while (rs.next()) {
+                List<String> row = new ArrayList<>();
+                for (int i = 0; i < columnCount; i++) {
+                    row.add(rs.getString(i + 1));
+                }
+                results.add(row);
+            }
+            if (results.isEmpty()) {
+                throw new DataAccessException("unauthorized");
+            }
+
+            return results;
         }
     }
 
