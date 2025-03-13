@@ -50,14 +50,20 @@ public class MemoryDataAccess implements DataAccess {
 
         String authToken = UUID.randomUUID().toString();
         authTokens.put(authToken, new AuthData(authToken, username));
-
+        System.out.println("Created new: " + authToken);
+        for (AuthData auth : authTokens.values()) {
+            System.out.println(auth.authToken());
+        }
         return authToken;
     }
 
     @Override
     public AuthData getAuth(String authToken) throws DataAccessException {
         AuthData auth = authTokens.get(authToken);
+        System.out.println("Retrieving: " + authToken);
+        System.out.println("Map contents: " + authTokens.keySet());
         if (auth == null) {
+            System.out.println("auth is null");
             throw new DataAccessException("unauthorized");
         }
         return auth;
@@ -71,6 +77,7 @@ public class MemoryDataAccess implements DataAccess {
 
     @Override
     public int createGame(String authToken, String gameName) throws DataAccessException {
+        System.out.println("Retrieving: " + authToken);
         getAuth(authToken);
         Random random = new Random();
         int gameID = 1000 + random.nextInt(9000); // Generates 1000 to 9999

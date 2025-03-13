@@ -3,6 +3,7 @@ package service;
 import chess.ChessGame;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
+import model.GameData;
 
 import java.util.List;
 
@@ -31,5 +32,9 @@ public class GameService {
             throw new DataAccessException("bad request");
         }
         dataAccess.addUserToGame(authToken, playerColor, gameID);
+    }
+
+    public GameData getGame(int gameID) throws DataAccessException {
+        return dataAccess.getGame(gameID);
     }
 }

@@ -2,7 +2,9 @@ package dataaccess;
 
 import chess.ChessGame;
 import httpmessages.GameResult;
-import model.*;
+import model.AuthData;
+import model.GameData;
+import model.UserData;
 import org.junit.jupiter.api.*;
 import service.GameService;
 import service.UserService;
@@ -10,21 +12,21 @@ import service.UserService;
 import java.util.List;
 import java.util.UUID;
 
-public class SqlDAOTests {
-    private static DataAccess dataAccess;
-    private static UserService userService;
-    private static GameService gameService;
-    private static final UserData user = new UserData("testUser", "test", "test@");
+public abstract class AbstractDaoTests {
+    protected static UserService userService;
+    protected static GameService gameService;
+    private static final UserData TEST_USER = new UserData("testUser", "test", "test@");
 
-    @BeforeAll
-    public static void setUpServices() {
-        dataAccess = new SqlDataAccess();
-        userService = new UserService(dataAccess);
-        gameService = new GameService(dataAccess);
+    protected abstract DataAccess getDataAccess();
+
+    @BeforeEach
+    public void setUpServices() {
+        userService = new UserService(getDataAccess());
+        gameService = new GameService(getDataAccess());
     }
 
     @BeforeEach
-    public void resetTestDb() throws Exception {
+    public void resetData() throws Exception {
         userService.clearApplication();
     }
 
@@ -32,10 +34,10 @@ public class SqlDAOTests {
     @DisplayName("Register new user on Database")
     public void registerNewUserDatabase() {
         try {
-            AuthData result = userService.register(user);
+            AuthData result = userService.register(TEST_USER);
 
             Assertions.assertNotNull(result.authToken(), "Should return valid AuthToken");
-            Assertions.assertEquals(user.username(), result.username(), "Usernames should match");
+            Assertions.assertEquals(TEST_USER.username(), result.username(), "Usernames should match");
         } catch (DataAccessException e) {
             Assertions.fail("Shouldn't throw error");
         }
@@ -57,7 +59,7 @@ public class SqlDAOTests {
     @DisplayName("Fail to register new user due to already taken username on Database")
     public void registerNewUserAlreadyTakenDatabase() {
         try {
-            userService.register(user);
+            userService.register(TEST_USER);
             userService.register(new UserData("testUser", "test2", "test@2"));
 
             Assertions.fail("Should have thrown 'already taken' error");
@@ -70,9 +72,9 @@ public class SqlDAOTests {
     @DisplayName("Logout a user on Database")
     public void logoutUserDatabase() {
         try {
-            AuthData result = userService.register(user);
+            AuthData result = userService.register(TEST_USER);
             userService.logout(result.authToken());
-            dataAccess.getAuth(result.authToken());
+            userService.getAuth(result.authToken());
 
             Assertions.fail("Should have thrown 'unauthorized' error");
         } catch (DataAccessException e) {
@@ -96,12 +98,12 @@ public class SqlDAOTests {
     @DisplayName("Login a user on Database")
     public void loginUserDatabase() {
         try {
-            AuthData result = userService.register(user);
+            AuthData result = userService.register(TEST_USER);
             userService.logout(result.authToken());
-            AuthData loginResult = userService.login(user);
+            AuthData loginResult = userService.login(TEST_USER);
 
             Assertions.assertNotNull(loginResult.authToken(), "Should return valid AuthToken");
-            Assertions.assertEquals(user.username(), loginResult.username(), "Usernames should match");
+            Assertions.assertEquals(TEST_USER.username(), loginResult.username(), "Usernames should match");
         } catch (DataAccessException e) {
             Assertions.fail("Shouldn't throw error");
         }
@@ -111,7 +113,7 @@ public class SqlDAOTests {
     @DisplayName("Fail to login user because of unauthorized username on Database")
     public void loginUsernameUnauthorizedDatabase() {
         try {
-            AuthData result = userService.register(user);
+            AuthData result = userService.register(TEST_USER);
             userService.logout(result.authToken());
             userService.login(new UserData("testUser2", "test", null));
 
@@ -125,7 +127,7 @@ public class SqlDAOTests {
     @DisplayName("Fail to login user because of unauthorized password on Database")
     public void loginPasswordUnauthorizedDatabase() {
         try {
-            AuthData result = userService.register(user);
+            AuthData result = userService.register(TEST_USER);
             userService.logout(result.authToken());
             userService.login(new UserData("testUser", "test2", null));
 
@@ -139,18 +141,18 @@ public class SqlDAOTests {
     @DisplayName("Clear application doesn't throw error on database")
     public void clearAppDatabase() {
         try {
-            AuthData result = userService.register(user);
+            AuthData result = userService.register(TEST_USER);
             int gameID = gameService.createGame(result.authToken(), "testGame");
 
             // Check that dataAccess has at least one user, game, and AuthData
-            Assertions.assertNotNull(dataAccess.getUser(user.username()), "Must be a user to clear");
-            Assertions.assertNotNull(dataAccess.getGame(gameID), "Must be a game to clear");
-            Assertions.assertNotNull(dataAccess.getAllGames(result.authToken()), "Must have some AuthData to clear");
+            Assertions.assertNotNull(userService.getUser(TEST_USER.username()), "Must be a user to clear");
+            Assertions.assertNotNull(gameService.getGame(gameID), "Must be a game to clear");
+            Assertions.assertNotNull(gameService.getAllGames(result.authToken()), "Must have some AuthData to clear");
 
             userService.clearApplication();
 
             // Kind of just assuming that if it cleared AuthData, it cleared everything else too
-            dataAccess.getAuth(result.authToken());
+            userService.getAuth(result.authToken());
             Assertions.fail("Should have thrown unauthorized error due to deleted authData");
         } catch (DataAccessException e) {
             Assertions.assertEquals("unauthorized", e.getMessage(), "Should be 'unauthorized' error");
@@ -162,19 +164,20 @@ public class SqlDAOTests {
     @DisplayName("Create new game on database")
     public void createNewGameDatabase() {
         String gameName = "testGame";
-
         try {
-            AuthData result = userService.register(user);
+            AuthData result = userService.register(TEST_USER);
+            System.out.println("passed here: " + result.username() + " " + result.authToken());
             int gameID = gameService.createGame(result.authToken(), gameName);
+            System.out.println("passed here");
             // Error will be thrown here if the gameID is invalid, don't need to check later
-            GameData game = dataAccess.getGame(gameID);
+            GameData game = gameService.getGame(gameID);
 
             Assertions.assertEquals(gameName, game.gameName(), "Game names must match");
             Assertions.assertNull(game.whiteUsername(), "White username should be null");
             Assertions.assertNull(game.blackUsername(), "Black username should be null");
             Assertions.assertNotNull(game.game(), "The ChessGame should not be null");
         } catch (DataAccessException e) {
-            Assertions.fail("Shouldn't throw error");
+            Assertions.fail("Shouldn't throw error, threw " + e.getMessage());
         }
     }
 
@@ -210,7 +213,7 @@ public class SqlDAOTests {
         String gameName2 = "testGame2";
 
         try {
-            AuthData result = userService.register(user);
+            AuthData result = userService.register(TEST_USER);
             gameService.createGame(result.authToken(), gameName);
             gameService.createGame(result.authToken(), gameName2);
             List<GameResult> games = gameService.getAllGames(result.authToken());
@@ -259,7 +262,7 @@ public class SqlDAOTests {
             int gameID = gameService.createGame(result1.authToken(), gameName);
             gameService.joinGame(result1.authToken(), ChessGame.TeamColor.WHITE, gameID);
             gameService.joinGame(result2.authToken(), ChessGame.TeamColor.BLACK, gameID);
-            GameData game = dataAccess.getGame(gameID);
+            GameData game = gameService.getGame(gameID);
 
             Assertions.assertEquals(gameName, game.gameName(), "Game name should be unchanged");
             Assertions.assertEquals(user1.username(), game.whiteUsername(), "White username should be correct");
@@ -274,7 +277,7 @@ public class SqlDAOTests {
     @DisplayName("Fail to join game due to bad request on database")
     public void joinGameBadRequestDatabase() {
         try {
-            AuthData result = userService.register(user);
+            AuthData result = userService.register(TEST_USER);
             gameService.joinGame(result.authToken(), ChessGame.TeamColor.WHITE, -1);
 
             Assertions.fail("Should have thrown 'bad request' error");

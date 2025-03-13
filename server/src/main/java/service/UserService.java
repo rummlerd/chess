@@ -39,4 +39,12 @@ public class UserService {
     public void logout(String authToken) throws DataAccessException {
         dataAccess.deleteAuth(authToken);
     }
+
+    public UserData getUser(String username) throws DataAccessException {
+        return dataAccess.getUser(username);
+    }
+
+    public AuthData getAuth(String authToken) throws DataAccessException {
+        return dataAccess.getAuth(authToken);
+    }
 }
