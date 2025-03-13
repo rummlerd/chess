@@ -5,6 +5,7 @@ import httpmessages.GameResult;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
+import org.eclipse.jetty.server.Authentication;
 import org.junit.jupiter.api.*;
 import service.GameService;
 import service.UserService;
@@ -18,6 +19,8 @@ public abstract class AbstractDaoTests {
     private static final UserData TEST_USER = new UserData("testUser", "test", "test@");
 
     protected abstract DataAccess getDataAccess();
+
+    protected abstract boolean memoryDaoTesting();
 
     @BeforeEach
     public void setUpServices() {
@@ -164,13 +167,25 @@ public abstract class AbstractDaoTests {
     @DisplayName("Create new game on database")
     public void createNewGameDatabase() {
         String gameName = "testGame";
+
         try {
-            AuthData result = userService.register(TEST_USER);
+            UserService userService1;
+            GameService gameService1;
+            if (memoryDaoTesting()) {
+                DataAccess dataAccess = new MemoryDataAccess();
+                userService1 = new UserService(dataAccess);
+                gameService1 = new GameService(dataAccess);
+            } else {
+                userService1 = userService;
+                gameService1 = gameService;
+            }
+
+            AuthData result = userService1.register(TEST_USER);
             System.out.println("passed here: " + result.username() + " " + result.authToken());
-            int gameID = gameService.createGame(result.authToken(), gameName);
+            int gameID = gameService1.createGame(result.authToken(), gameName);
             System.out.println("passed here");
             // Error will be thrown here if the gameID is invalid, don't need to check later
-            GameData game = gameService.getGame(gameID);
+            GameData game = gameService1.getGame(gameID);
 
             Assertions.assertEquals(gameName, game.gameName(), "Game names must match");
             Assertions.assertNull(game.whiteUsername(), "White username should be null");
@@ -213,10 +228,21 @@ public abstract class AbstractDaoTests {
         String gameName2 = "testGame2";
 
         try {
-            AuthData result = userService.register(TEST_USER);
-            gameService.createGame(result.authToken(), gameName);
-            gameService.createGame(result.authToken(), gameName2);
-            List<GameResult> games = gameService.getAllGames(result.authToken());
+            UserService userService1;
+            GameService gameService1;
+            if (memoryDaoTesting()) {
+                DataAccess dataAccess = new MemoryDataAccess();
+                userService1 = new UserService(dataAccess);
+                gameService1 = new GameService(dataAccess);
+            } else {
+                userService1 = userService;
+                gameService1 = gameService;
+            }
+
+            AuthData result = userService1.register(TEST_USER);
+            gameService1.createGame(result.authToken(), gameName);
+            gameService1.createGame(result.authToken(), gameName2);
+            List<GameResult> games = gameService1.getAllGames(result.authToken());
 
             Assertions.assertEquals(2, games.size(), "Should be 2 games");
             // Can't be sure what order games are listed, so check that names match the input names
@@ -257,12 +283,23 @@ public abstract class AbstractDaoTests {
         String gameName = "testGame";
 
         try {
-            AuthData result1 = userService.register(user1);
-            AuthData result2 = userService.register(user2);
-            int gameID = gameService.createGame(result1.authToken(), gameName);
-            gameService.joinGame(result1.authToken(), ChessGame.TeamColor.WHITE, gameID);
-            gameService.joinGame(result2.authToken(), ChessGame.TeamColor.BLACK, gameID);
-            GameData game = gameService.getGame(gameID);
+            UserService userService1;
+            GameService gameService1;
+            if (memoryDaoTesting()) {
+                DataAccess dataAccess = new MemoryDataAccess();
+                userService1 = new UserService(dataAccess);
+                gameService1 = new GameService(dataAccess);
+            } else {
+                userService1 = userService;
+                gameService1 = gameService;
+            }
+
+            AuthData result1 = userService1.register(user1);
+            AuthData result2 = userService1.register(user2);
+            int gameID = gameService1.createGame(result1.authToken(), gameName);
+            gameService1.joinGame(result1.authToken(), ChessGame.TeamColor.WHITE, gameID);
+            gameService1.joinGame(result2.authToken(), ChessGame.TeamColor.BLACK, gameID);
+            GameData game = gameService1.getGame(gameID);
 
             Assertions.assertEquals(gameName, game.gameName(), "Game name should be unchanged");
             Assertions.assertEquals(user1.username(), game.whiteUsername(), "White username should be correct");
@@ -302,12 +339,23 @@ public abstract class AbstractDaoTests {
     @DisplayName("Fail to join game due to color already taken on Database")
     public void joinGameColorAlreadyTakenDatabase() {
         try {
-            AuthData result1 = userService.register(new UserData("user1", "test", "test@"));
-            AuthData result2 = userService.register(new UserData("user2", "test", "test@"));
-            int gameID = gameService.createGame(result1.authToken(), "testGame");
-            gameService.joinGame(result1.authToken(), ChessGame.TeamColor.WHITE, gameID);
+            UserService userService1;
+            GameService gameService1;
+            if (memoryDaoTesting()) {
+                DataAccess dataAccess = new MemoryDataAccess();
+                userService1 = new UserService(dataAccess);
+                gameService1 = new GameService(dataAccess);
+            } else {
+                userService1 = userService;
+                gameService1 = gameService;
+            }
+
+            AuthData result1 = userService1.register(new UserData("user1", "test", "test@"));
+            AuthData result2 = userService1.register(new UserData("user2", "test", "test@"));
+            int gameID = gameService1.createGame(result1.authToken(), "testGame");
+            gameService1.joinGame(result1.authToken(), ChessGame.TeamColor.WHITE, gameID);
             // Second user tries to join as WHITE but WHITE is already taken
-            gameService.joinGame(result2.authToken(), ChessGame.TeamColor.WHITE, gameID);
+            gameService1.joinGame(result2.authToken(), ChessGame.TeamColor.WHITE, gameID);
 
             Assertions.fail("Should have thrown 'already taken' error");
         } catch (DataAccessException e) {
