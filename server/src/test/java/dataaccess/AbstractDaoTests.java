@@ -181,9 +181,7 @@ public abstract class AbstractDaoTests {
             }
 
             AuthData result = userService1.register(TEST_USER);
-            System.out.println("passed here: " + result.username() + " " + result.authToken());
             int gameID = gameService1.createGame(result.authToken(), gameName);
-            System.out.println("passed here");
             // Error will be thrown here if the gameID is invalid, don't need to check later
             GameData game = gameService1.getGame(gameID);
 
