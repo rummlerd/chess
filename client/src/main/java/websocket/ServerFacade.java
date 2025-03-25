@@ -4,14 +4,12 @@ import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
-import com.google.gson.reflect.TypeToken;
 import httpmessages.GameRequest;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 
 import java.io.*;
-import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
@@ -53,6 +51,15 @@ public class ServerFacade {
     public void playGame(int gameID, String playerColor, String authToken) throws Exception {
         var path = "/game";
         makeRequest("PUT", path, new GameRequest(playerColor, gameID), null, authToken);
+    }
+
+    public String drawGame(int gameID, String authToken, boolean whitePerspective) throws Exception {
+        var path = "/game?id=" + gameID;
+        GameData gameData = makeRequest("GET", path, null, GameData.class, authToken);
+        if (!whitePerspective) {
+            return gameData.game().getBoard().toStringFromBlack();
+        }
+        return gameData.game().getBoard().toStringFromWhite();
     }
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws Exception {

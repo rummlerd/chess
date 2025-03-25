@@ -13,6 +13,7 @@ import spark.Request;
 import spark.Response;
 import spark.Spark;
 
+import javax.xml.crypto.Data;
 import java.util.Map;
 
 public class RouteManager {
@@ -44,7 +45,7 @@ public class RouteManager {
         Spark.post("/user", this::registerUser);
         Spark.post("/session", this::login);
         Spark.delete("/session", this::logout);
-        Spark.get("/game", this::listGames);
+        Spark.get("/game", this::getGame);
         Spark.post("/game", this::createGame);
         Spark.put("/game", this::joinGame);
     }
@@ -71,8 +72,21 @@ public class RouteManager {
         return "{}";
     }
 
-    private Object listGames(Request req, Response res) throws DataAccessException {
+    private Object getGame(Request req, Response res) throws DataAccessException {
         String authToken = req.headers("authorization");
+        String gameID = req.queryParams("id");
+        if (gameID == null) {
+            return listGames(req, res, authToken);
+        } else {
+            return getSingleGame(Integer.parseInt(gameID));
+        }
+    }
+
+    private Object getSingleGame(int gameID) throws DataAccessException {
+        return gson.toJson(gameService.getGame(gameID));
+    }
+
+    private Object listGames(Request req, Response res, String authToken) throws DataAccessException {
         return gson.toJson(Map.of("games", gameService.getAllGames(authToken)));
     }
 

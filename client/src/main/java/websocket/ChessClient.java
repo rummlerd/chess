@@ -30,7 +30,7 @@ public class ChessClient {
                 case "create" -> createGame(params);
                 case "list" -> listGames();
                 case "join" -> playGame(params);
-                case "observe" -> ""; //FIXME observe(params);
+                case "observe" -> observe(params);
                 case "logout" -> logout();
                 case "quit" -> "quit";
                 default -> help();
@@ -79,6 +79,7 @@ public class ChessClient {
     }
 
     public String logout() throws Exception {
+        checkStatus();
         server.logout(authData.authToken());
         authData = new AuthData(null, null);
         switchStatus(status.equals(State.LOGGED_IN));
@@ -86,6 +87,7 @@ public class ChessClient {
     }
 
     public String createGame(String... params) throws Exception {
+        checkStatus();
         if (params.length >= 1) {
             GameData gameData = new GameData(0, null, null, params[0], null);
             server.createGame(authData.authToken(), gameData);
@@ -95,6 +97,7 @@ public class ChessClient {
     }
 
     public String listGames() throws Exception {
+        checkStatus();
         games = server.listGames(authData.authToken());
         if (games.isEmpty()) {
             return "\tNo games available.\n\tcreate <NAME> - a game";
@@ -123,16 +126,11 @@ public class ChessClient {
     }
 
     public String playGame(String... params) throws Exception {
+        checkStatus();
         if (params.length >= 2) {
-            int gameID;
-            String playerColor;
             int number = Integer.parseInt(params[0]) - 1;
-            if (number >= 0 && number < games.size()) {
-                gameID = games.get(number).gameID();
-            }
-            else {
-                return "\tinvalid game number";
-            }
+            int gameID = getGameID(number);
+            String playerColor;
             if (params[1].equals("white")) {
                 if (games.get(number).whiteUsername() != null) {
                     return "\tcolor already taken";
@@ -149,13 +147,41 @@ public class ChessClient {
                 return "\tinvalid color";
             }
             server.playGame(gameID, playerColor, authData.authToken());
-            return "\tGame joined";
+            return "\tGame joined"; //FIXME change to output game board
+        }
+        return "\tbad request";
+    }
+
+    public String observe(String... params) throws Exception {
+        checkStatus();
+        if (games == null) {
+            return "\tplease list games before attempting to observe";
+        }
+        if (params.length >= 1) {
+            int number = Integer.parseInt(params[0]) - 1;
+            int gameID = getGameID(number);
+            return server.drawGame(gameID, authData.authToken(), true);
         }
         return "\tbad request";
     }
 
     public State getStatus() {
         return status;
+    }
+
+    public void checkStatus() throws Exception {
+        if (status == State.LOGGED_OUT) {
+            throw new Exception("\tplease log in");
+        }
+    }
+
+    private int getGameID(int number) throws Exception {
+        if (number >= 0 && number < games.size()) {
+            return games.get(number).gameID();
+        }
+        else {
+            throw new Exception("\tinvalid game number");
+        }
     }
 
     /**

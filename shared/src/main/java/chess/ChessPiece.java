@@ -54,7 +54,7 @@ public class ChessPiece implements Cloneable {
 
     @Override
     public String toString() {
-        if (pieceColor == ChessGame.TeamColor.WHITE) {
+//        if (pieceColor == ChessGame.TeamColor.WHITE) {
             switch (type) {
                 case KING -> {
                     return "K";
@@ -75,28 +75,28 @@ public class ChessPiece implements Cloneable {
                     return "P";
                 }
             }
-        } else {
-            switch (type) {
-                case KING -> {
-                    return "k";
-                }
-                case QUEEN -> {
-                    return "q";
-                }
-                case BISHOP -> {
-                    return "b";
-                }
-                case KNIGHT -> {
-                    return "n";
-                }
-                case ROOK -> {
-                    return "r";
-                }
-                case PAWN -> {
-                    return "p";
-                }
-            }
-        }
+//        } else {
+//            switch (type) {
+//                case KING -> {
+//                    return "k";
+//                }
+//                case QUEEN -> {
+//                    return "q";
+//                }
+//                case BISHOP -> {
+//                    return "b";
+//                }
+//                case KNIGHT -> {
+//                    return "n";
+//                }
+//                case ROOK -> {
+//                    return "r";
+//                }
+//                case PAWN -> {
+//                    return "p";
+//                }
+//            }
+//        }
 
         return "?";
     }

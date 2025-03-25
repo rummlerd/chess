@@ -2,6 +2,7 @@ package chess;
 
 import java.util.Arrays;
 import java.util.Objects;
+import static chess.EscapeSequences.*;
 
 /**
  * A chessboard that can hold and rearrange chess pieces.
@@ -120,19 +121,76 @@ public class ChessBoard implements Cloneable {
 
     @Override
     public String toString() {
+        return toStringFromWhite();
+    }
+
+    public String toStringFromWhite() {
+        return buildBoardView(true);
+    }
+
+    public String toStringFromBlack() {
+        return buildBoardView(false);
+    }
+
+    private String buildBoardView(boolean fromWhitePerspective) {
         var builder = new StringBuilder();
-        for (int i = 7; i > -1; i--) {
-            builder.append('|');
-            for (int j = 0; j < 8; j++) {
-                if (squares[i][j] != null) {
-                    builder.append(squares[i][j].toString());
-                } else {
-                    builder.append(' ');
-                }
-                builder.append('|');
-            }
-            builder.append('\n');
+
+        // Adjust column labels for white's and black's perspective
+        String[] columns = fromWhitePerspective ? new String[] {"a", "b", "c", "d", "e", "f", "g", "h"}
+                : new String[] {"h", "g", "f", "e", "d", "c", "b", "a"};
+
+        // Add extra dark grey background for column labels
+        builder.append("\t").append(SET_TEXT_BOLD).append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_BLACK);
+        builder.append("    ");
+        for (String column : columns) {
+            builder.append(column).append("  ");
         }
+        builder.append("  ").append(RESET_BG_COLOR).append("\n");
+
+        // Loop through rows
+        for (int i = 0; i < 8; i++) {
+            // Reverse rows for black's perspective
+            int row = fromWhitePerspective ? 7 - i : i;  // White: 8 to 1, Black: 1 to 8
+            builder.append("\t").append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_BLACK).append(' ').append(row + 1).append(' ');
+
+            for (int j = 0; j < 8; j++) {
+                // Adjust square colors for white and black perspectives
+                String bgColor;
+                if (fromWhitePerspective) {
+                    bgColor = (row + j) % 2 == 0 ? SET_BG_COLOR_BLACK : SET_BG_COLOR_LIGHTER_GREY; // White's perspective
+                } else {
+                    bgColor = (row + j) % 2 == 0 ? SET_BG_COLOR_LIGHTER_GREY : SET_BG_COLOR_BLACK; // Black's perspective
+                }
+                builder.append(bgColor);
+
+                if (squares[row][j] != null) {
+                    // For white pieces (red text)
+                    if (squares[row][j].getTeamColor() == ChessGame.TeamColor.WHITE) {
+                        builder.append(SET_TEXT_COLOR_RED);
+                    }
+                    // For black pieces (blue text)
+                    else if (squares[row][j].getTeamColor() == ChessGame.TeamColor.BLACK) {
+                        builder.append(SET_TEXT_COLOR_BLUE);
+                    }
+                    builder.append(' ').append(squares[row][j].toString()).append(' ');
+                } else {
+                    builder.append("   ");
+                }
+            }
+
+            // End of row
+            builder.append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_BLACK).append(' ').append(row + 1).append(' ');
+            builder.append(RESET_BG_COLOR).append(RESET_TEXT_COLOR).append('\n');
+        }
+
+        // Add extra dark grey background for column labels at the bottom
+        builder.append("\t").append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_BLACK);
+        builder.append("    ");  // Two spaces before columns
+        for (String column : columns) {
+            builder.append(column).append("  ");
+        }
+        builder.append("  ").append(RESET_BG_COLOR).append(RESET_TEXT_COLOR).append(RESET_TEXT_BOLD_FAINT);
+
         return builder.toString();
     }
 
