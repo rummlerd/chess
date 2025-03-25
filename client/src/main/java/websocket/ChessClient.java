@@ -147,7 +147,7 @@ public class ChessClient {
                 return "\tinvalid color";
             }
             server.playGame(gameID, playerColor, authData.authToken());
-            return "\tGame joined"; //FIXME change to output game board
+            return server.drawGame(gameID, authData.authToken(), playerColor.equals("WHITE"));
         }
         return "\tbad request";
     }
