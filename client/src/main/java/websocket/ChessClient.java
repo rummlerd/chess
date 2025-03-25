@@ -31,7 +31,7 @@ public class ChessClient {
                 case "join" -> ""; //FIXME join(params);
                 case "observe" -> ""; //FIXME observe(params);
                 case "logout" -> logout();
-                case "quit" -> ""; //FIXME "quit";
+                case "quit" -> "quit";
                 default -> help();
             };
         } catch (Exception e) {
