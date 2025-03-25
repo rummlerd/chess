@@ -1,5 +1,6 @@
 package websocket;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -47,6 +48,11 @@ public class ServerFacade {
         var path = "/game";
         GameListResponse response = makeRequest("GET", path, null, GameListResponse.class, authToken);
         return response.games;
+    }
+
+    public void playGame(int gameID, String playerColor, String authToken) throws Exception {
+        var path = "/game";
+        makeRequest("PUT", path, new GameRequest(playerColor, gameID), null, authToken);
     }
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws Exception {

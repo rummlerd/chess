@@ -1,5 +1,6 @@
 package websocket;
 
+import chess.ChessGame;
 import model.GameData;
 import model.AuthData;
 import model.UserData;
@@ -28,7 +29,7 @@ public class ChessClient {
                 case "login" -> login(params);
                 case "create" -> createGame(params);
                 case "list" -> listGames();
-                case "join" -> ""; //FIXME join(params);
+                case "join" -> playGame(params);
                 case "observe" -> ""; //FIXME observe(params);
                 case "logout" -> logout();
                 case "quit" -> "quit";
@@ -65,7 +66,7 @@ public class ChessClient {
             switchStatus(status.equals(State.LOGGED_OUT));
             return "\tLogged in as " + authData.username();
         }
-        throw new Exception("\tbad request");
+        return "\tbad request";
     }
 
     public String register(String... params) throws Exception {
@@ -74,7 +75,7 @@ public class ChessClient {
             switchStatus(status.equals(State.LOGGED_OUT));
             return "\tRegistered as " + authData.username();
         }
-        throw new Exception("\tbad request");
+        return "\tbad request";
     }
 
     public String logout() throws Exception {
@@ -90,7 +91,7 @@ public class ChessClient {
             server.createGame(authData.authToken(), gameData);
             return "\tGame created";
         }
-        throw new Exception("\tbad request");
+        return "\tbad request";
     }
 
     public String listGames() throws Exception {
@@ -119,6 +120,38 @@ public class ChessClient {
             }
         }
         return result.toString();
+    }
+
+    public String playGame(String... params) throws Exception {
+        if (params.length >= 2) {
+            int gameID;
+            String playerColor;
+            int number = Integer.parseInt(params[0]) - 1;
+            if (number >= 0 && number < games.size()) {
+                gameID = games.get(number).gameID();
+            }
+            else {
+                return "\tinvalid game number";
+            }
+            if (params[1].equals("white")) {
+                if (games.get(number).whiteUsername() != null) {
+                    return "\tcolor already taken";
+                }
+                playerColor = "WHITE";
+            }
+            else if (params[1].equals("black")) {
+                if (games.get(number).blackUsername() != null) {
+                    return "\tcolor already taken";
+                }
+                playerColor = "BLACK";
+            }
+            else {
+                return "\tinvalid color";
+            }
+            server.playGame(gameID, playerColor, authData.authToken());
+            return "\tGame joined";
+        }
+        return "\tbad request";
     }
 
     public State getStatus() {
