@@ -21,13 +21,18 @@ public class ServerFacade {
         this.serverUrl = serverUrl;
     }
 
-    public Object login(UserData userData) throws Exception {
-        var path = "/session";
-        return this.makeRequest(path, userData);
+    public void clearDatabase() throws Exception {
+        var path = "/db";
+        this.makeRequest("DELETE", path, null, null, null);
     }
 
     public Object register(UserData userData) throws Exception {
         var path = "/user";
+        return this.makeRequest(path, userData);
+    }
+
+    public Object login(UserData userData) throws Exception {
+        var path = "/session";
         return this.makeRequest(path, userData);
     }
 
