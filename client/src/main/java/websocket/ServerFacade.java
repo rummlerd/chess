@@ -3,17 +3,18 @@ package websocket;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
+import com.google.gson.reflect.TypeToken;
+import httpmessages.GameRequest;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
 
-import java.io.IOException;
-import java.io.InputStream;
-import java.io.InputStreamReader;
-import java.io.OutputStream;
+import java.io.*;
+import java.lang.reflect.Type;
 import java.net.HttpURLConnection;
 import java.net.URI;
 import java.net.URL;
+import java.util.List;
 
 public class ServerFacade {
     private final String serverUrl;
@@ -40,6 +41,12 @@ public class ServerFacade {
     public void createGame(String authToken, GameData gameData) throws Exception {
         var path = "/game";
         this.makeRequest("POST", path, gameData, null, authToken);
+    }
+
+    public List<httpmessages.GameResult> listGames(String authToken) throws Exception {
+        var path = "/game";
+        GameListResponse response = makeRequest("GET", path, null, GameListResponse.class, authToken);
+        return response.games;
     }
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws Exception {

@@ -3,13 +3,15 @@ package websocket;
 import model.GameData;
 import model.AuthData;
 import model.UserData;
-
+import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.List;
 
 public class ChessClient {
     private final ServerFacade server;
     private static State status;
     private AuthData authData;
+    private List<httpmessages.GameResult> games;
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -25,7 +27,7 @@ public class ChessClient {
                 case "register" -> register(params);
                 case "login" -> login(params);
                 case "create" -> createGame(params);
-                case "list" -> ""; //FIXME list();
+                case "list" -> listGames();
                 case "join" -> ""; //FIXME join(params);
                 case "observe" -> ""; //FIXME observe(params);
                 case "logout" -> logout();
@@ -40,22 +42,20 @@ public class ChessClient {
     public String help() {
         if (status == State.LOGGED_OUT) {
             return """
-                        register <USERNAME> <PASSWORD> <EMAIL> - to create an account
-                        login <USERNAME> <PASSWORD> - to play chess
-                        quit - playing chess
-                        help - with possible commands
-                    """;
+                        \tregister <USERNAME> <PASSWORD> <EMAIL> - to create an account
+                        \tlogin <USERNAME> <PASSWORD> - to play chess
+                        \tquit - playing chess
+                        \thelp - with possible commands""";
         }
         else {
             return """
-                        create <NAME> - a game
-                        list - games
-                        join <ID> [WHITE|BLACK] - a game
-                        observe <ID> - a game
-                        logout - when you are done
-                        quit - playing chess
-                        help - with possible commands
-                   """;
+                        \tcreate <NAME> - a game
+                        \tlist - games
+                        \tjoin <ID> [WHITE|BLACK] - a game
+                        \tobserve <ID> - a game
+                        \tlogout - when you are done
+                        \tquit - playing chess
+                        \thelp - with possible commands""";
         }
     }
 
@@ -91,6 +91,34 @@ public class ChessClient {
             return "\tGame created";
         }
         throw new Exception("\tbad request");
+    }
+
+    public String listGames() throws Exception {
+        games = server.listGames(authData.authToken());
+        if (games.isEmpty()) {
+            return "\tNo games available.\n\tcreate <NAME> - a game";
+        }
+        StringBuilder result = new StringBuilder("\tGames:\n");
+        int i = 0;
+        for (httpmessages.GameResult game : games) {
+            if (i != 0) {
+                result.append("\n");
+            }
+            i++;
+            result.append("\t").append(i).append(" - ").append(game.gameName()).append(": ");
+            if (game.whiteUsername() != null) {
+                result.append(game.whiteUsername());
+            } else {
+                result.append("<AVAILABLE>");
+            }
+            result.append(" vs ");
+            if (game.blackUsername() != null) {
+                result.append(game.blackUsername());
+            } else {
+                result.append("<AVAILABLE>");
+            }
+        }
+        return result.toString();
     }
 
     public State getStatus() {
