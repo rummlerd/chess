@@ -1,7 +1,6 @@
 package websocket;
 
-import com.google.gson.Gson;
-import com.google.gson.GsonBuilder;
+import model.GameData;
 import model.AuthData;
 import model.UserData;
 
@@ -11,7 +10,6 @@ public class ChessClient {
     private final ServerFacade server;
     private static State status;
     private AuthData authData;
-    private final Gson gson = new GsonBuilder().create();
 
     public ChessClient(String serverUrl) {
         server = new ServerFacade(serverUrl);
@@ -26,7 +24,7 @@ public class ChessClient {
             return switch (cmd) {
                 case "register" -> register(params);
                 case "login" -> login(params);
-                case "create" -> ""; //FIXME create(params);
+                case "create" -> createGame(params);
                 case "list" -> ""; //FIXME list();
                 case "join" -> ""; //FIXME join(params);
                 case "observe" -> ""; //FIXME observe(params);
@@ -84,6 +82,15 @@ public class ChessClient {
         authData = new AuthData(null, null);
         switchStatus(status.equals(State.LOGGED_IN));
         return "\tLogged out";
+    }
+
+    public String createGame(String... params) throws Exception {
+        if (params.length >= 1) {
+            GameData gameData = new GameData(0, null, null, params[0], null);
+            server.createGame(authData.authToken(), gameData);
+            return "\tGame created";
+        }
+        throw new Exception("\tbad request");
     }
 
     public State getStatus() {

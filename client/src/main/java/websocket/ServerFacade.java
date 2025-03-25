@@ -4,6 +4,7 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import model.AuthData;
+import model.GameData;
 import model.UserData;
 
 import java.io.IOException;
@@ -34,6 +35,11 @@ public class ServerFacade {
     public String logout(String authToken) throws Exception {
         var path = "/session";
         return this.makeRequest("DELETE", path, null, null, authToken);
+    }
+
+    public void createGame(String authToken, GameData gameData) throws Exception {
+        var path = "/game";
+        this.makeRequest("POST", path, gameData, null, authToken);
     }
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws Exception {
