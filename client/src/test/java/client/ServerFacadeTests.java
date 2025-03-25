@@ -18,6 +18,7 @@ public class ServerFacadeTests {
     private static ServerFacade facade;
     private static Server server;
     private static final UserData testUser = new UserData("player1", "password", "p1@email.com");
+    private static final GameData testGame = new GameData(0, null, null, "Test Game", null);
 
     @BeforeAll
     public static void init() {
@@ -134,8 +135,7 @@ public class ServerFacadeTests {
     void createGame() throws Exception {
         Object res = facade.register(testUser);
         AuthData authData = (AuthData) res;
-        GameData gameData = new GameData(0, null, null, "Test Game", null);
-        facade.createGame(authData.authToken(), gameData);
+        facade.createGame(authData.authToken(), testGame);
         List<GameResult> games = facade.listGames(authData.authToken());
         assertTrue(games.stream().anyMatch(game -> game.gameName().equals("Test Game")),
                 "Created game should appear in the list");
@@ -144,8 +144,7 @@ public class ServerFacadeTests {
     @Test
     void createGameUnauthorized() {
         try {
-            GameData gameData = new GameData(0, null, null, "Test Game", null);
-            facade.createGame("invalid_token", gameData);
+            facade.createGame("invalid_token", testGame);
             Assertions.fail("Should have thrown 'unauthorized' error");
         } catch (Exception e) {
             Assertions.assertEquals("Error: unauthorized", e.getMessage(), "Should be 'Error: unauthorized'");
@@ -174,5 +173,43 @@ public class ServerFacadeTests {
             Assertions.assertEquals("Error: unauthorized", e.getMessage(), "Should be 'Error: unauthorized'");
         }
     }
+
+    @Test
+    void playGame() {
+        try {
+            Object res = facade.register(testUser);
+            AuthData authData = (AuthData) res;
+            facade.createGame(authData.authToken(), testGame);
+            List<httpmessages.GameResult> games = facade.listGames(authData.authToken());
+            int gameID = games.getFirst().gameID();
+            facade.playGame(gameID, "WHITE", authData.authToken());
+        } catch (Exception e) {
+            Assertions.fail("Should not have thrown error");
+        }
+    }
+
+    @Test
+    void playGameUnauthorized() {
+        try {
+            facade.playGame(1, "WHITE", "invalid_token");
+            Assertions.fail("Should have thrown 'bad request' error");
+        } catch (Exception e) {
+            Assertions.assertEquals("Error: bad request", e.getMessage(), "Should be 'Error: bad request'");
+        }
+    }
+
+    @Test
+    void playGameInvalidGameID() {
+        try {
+            Object res = facade.register(testUser);
+            AuthData authData = (AuthData) res;
+            facade.playGame(-1, "WHITE", authData.authToken());
+            Assertions.fail("Should have thrown 'bad request' error");
+        } catch (Exception e) {
+            Assertions.assertEquals("Error: bad request", e.getMessage(), "Should be 'Error: bad request'");
+        }
+    }
+
+
 
 }
