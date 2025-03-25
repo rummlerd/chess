@@ -30,8 +30,8 @@ public class ChessClient {
                 case "list" -> ""; //FIXME list();
                 case "join" -> ""; //FIXME join(params);
                 case "observe" -> ""; //FIXME observe(params);
-                case "logout" -> ""; //FIXME logout();
-                case "quit" -> "quit";
+                case "logout" -> logout();
+                case "quit" -> ""; //FIXME "quit";
                 default -> help();
             };
         } catch (Exception e) {
@@ -62,21 +62,29 @@ public class ChessClient {
     }
 
     public String login(String... params) throws Exception {
-        if (params.length >= 1) {
+        if (params.length >= 2) {
+            authData = (AuthData) server.login(new UserData(params[0], params[1], null));
             switchStatus(status.equals(State.LOGGED_OUT));
+            return "\tLogged in as " + authData.username();
         }
-        return "";
+        throw new Exception("\tbad request");
     }
 
     public String register(String... params) throws Exception {
-        if (params.length >= 1) {
-            switchStatus(status.equals(State.LOGGED_OUT));
+        if (params.length >= 3) {
             authData = (AuthData) server.register(new UserData(params[0], params[1], params[2]));
-            return "\tLogged in as " + authData.username();
+            switchStatus(status.equals(State.LOGGED_OUT));
+            return "\tRegistered as " + authData.username();
         }
-        return null;
+        throw new Exception("\tbad request");
     }
 
+    public String logout() throws Exception {
+        server.logout(authData.authToken());
+        authData = new AuthData(null, null);
+        switchStatus(status.equals(State.LOGGED_IN));
+        return "\tLogged out";
+    }
 
     public State getStatus() {
         return status;

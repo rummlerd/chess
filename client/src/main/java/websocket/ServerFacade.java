@@ -31,14 +31,32 @@ public class ServerFacade {
         return this.makeRequest("POST", path, userData, AuthData.class);
     }
 
+    public String logout(String authToken) throws Exception {
+        var path = "/session";
+        return this.makeRequest("DELETE", path, null, null, authToken);
+    }
+
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws Exception {
+        return makeRequest(method, path, request, responseClass, null); // Call overloaded method with null token
+    }
+
+    private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass, String authToken) throws Exception {
         try {
             URL url = (new URI(serverUrl + path)).toURL();
             HttpURLConnection http = (HttpURLConnection) url.openConnection();
             http.setRequestMethod(method);
             http.setDoOutput(true);
 
-            writeBody(request, http);
+            // Add authorization header only if authToken is provided
+            if (authToken != null && !authToken.isEmpty()) {
+                http.setRequestProperty("authorization", authToken);
+            }
+
+            // Handle request body only for methods that need it (POST, PUT)
+            if ("POST".equals(method) || "PUT".equals(method)) {
+                writeBody(request, http);
+            }
+
             http.connect();
             throwIfNotSuccessful(http);
             return readBody(http, responseClass);
