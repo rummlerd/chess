@@ -1,6 +1,5 @@
 package websocket;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -24,17 +23,17 @@ public class ServerFacade {
 
     public Object login(UserData userData) throws Exception {
         var path = "/session";
-        return this.makeRequest("POST", path, userData, AuthData.class);
+        return this.makeRequest(path, userData);
     }
 
     public Object register(UserData userData) throws Exception {
         var path = "/user";
-        return this.makeRequest("POST", path, userData, AuthData.class);
+        return this.makeRequest(path, userData);
     }
 
-    public String logout(String authToken) throws Exception {
+    public void logout(String authToken) throws Exception {
         var path = "/session";
-        return this.makeRequest("DELETE", path, null, null, authToken);
+        this.makeRequest("DELETE", path, null, null, authToken);
     }
 
     public void createGame(String authToken, GameData gameData) throws Exception {
@@ -62,33 +61,30 @@ public class ServerFacade {
         return gameData.game().getBoard().toStringFromWhite();
     }
 
-    private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass) throws Exception {
-        return makeRequest(method, path, request, responseClass, null); // Call overloaded method with null token
+    @SuppressWarnings("unchecked")
+    private <T> T makeRequest(String path, Object request) throws Exception {
+        return makeRequest("POST", path, request, (Class<T>) AuthData.class, null); // Call overloaded method with null token
     }
 
     private <T> T makeRequest(String method, String path, Object request, Class<T> responseClass, String authToken) throws Exception {
-        try {
-            URL url = (new URI(serverUrl + path)).toURL();
-            HttpURLConnection http = (HttpURLConnection) url.openConnection();
-            http.setRequestMethod(method);
-            http.setDoOutput(true);
+        URL url = (new URI(serverUrl + path)).toURL();
+        HttpURLConnection http = (HttpURLConnection) url.openConnection();
+        http.setRequestMethod(method);
+        http.setDoOutput(true);
 
-            // Add authorization header only if authToken is provided
-            if (authToken != null && !authToken.isEmpty()) {
-                http.setRequestProperty("authorization", authToken);
-            }
+        // Add authorization header only if authToken is provided
+        if (authToken != null && !authToken.isEmpty()) {
+            http.setRequestProperty("authorization", authToken);
+        }
 
-            // Handle request body only for methods that need it (POST, PUT)
-            if ("POST".equals(method) || "PUT".equals(method)) {
-                writeBody(request, http);
-            }
+        // Handle request body only for methods that need it (POST, PUT)
+        if ("POST".equals(method) || "PUT".equals(method)) {
+            writeBody(request, http);
+        }
 
-            http.connect();
-            throwIfNotSuccessful(http);
-            return readBody(http, responseClass);
-        } catch (Exception e) {
-            throw e;
-        } // FIXME add more specific error handling
+        http.connect();
+        throwIfNotSuccessful(http);
+        return readBody(http, responseClass);
     }
 
     private static void writeBody(Object request, HttpURLConnection http) throws IOException {

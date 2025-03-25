@@ -165,7 +165,7 @@ public class DatabaseTests {
     }
 
     @FunctionalInterface
-    private static interface TableAction {
+    private interface TableAction {
         void execute(String tableName, Connection connection) throws SQLException;
     }
 

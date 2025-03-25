@@ -1,10 +1,8 @@
 package websocket;
 
-import chess.ChessGame;
 import model.GameData;
 import model.AuthData;
 import model.UserData;
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
 
@@ -32,7 +30,7 @@ public class ChessClient {
                 case "join" -> playGame(params);
                 case "observe" -> observe(params);
                 case "logout" -> logout();
-                case "quit" -> "quit";
+                case "quit" -> "\tquitting...";
                 default -> help();
             };
         } catch (Exception e) {
@@ -71,6 +69,9 @@ public class ChessClient {
 
     public String register(String... params) throws Exception {
         if (params.length >= 3) {
+            if (params[0].equals("<available>")) {
+                return "\tplease use different username";
+            }
             authData = (AuthData) server.register(new UserData(params[0], params[1], params[2]));
             switchStatus(status.equals(State.LOGGED_OUT));
             return "\tRegistered as " + authData.username();
@@ -189,10 +190,12 @@ public class ChessClient {
      * If user is logged in and attempts to log out, log out
      * Else do nothing
      */
-    private void switchStatus(boolean validRequest) {
+    private void switchStatus(boolean validRequest) throws Exception {
         if (validRequest) {
             status = (status == State.LOGGED_OUT) ? State.LOGGED_IN : State.LOGGED_OUT;
         }
-        //FIXME possibly add message "already logged in" if client is attempting to log in again
+        else if (status.equals(State.LOGGED_IN)) {
+            throw new Exception("\talready logged in");
+        }
     }
 }
