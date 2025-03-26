@@ -154,25 +154,21 @@ public class ChessBoard implements Cloneable {
             builder.append("\t").append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_BLACK).append(' ').append(row + 1).append(' ');
 
             for (int j = 0; j < 8; j++) {
+                int col = fromWhitePerspective ? j : 7 - j;
                 // Adjust square colors for white and black perspectives
-                String bgColor;
-                if (fromWhitePerspective) {
-                    bgColor = (row + j) % 2 == 0 ? SET_BG_COLOR_BLACK : SET_BG_COLOR_LIGHTER_GREY; // White's perspective
-                } else {
-                    bgColor = (row + j) % 2 == 0 ? SET_BG_COLOR_LIGHTER_GREY : SET_BG_COLOR_BLACK; // Black's perspective
-                }
+                String bgColor = (row + col) % 2 == 0 ? SET_BG_COLOR_BLACK : SET_BG_COLOR_LIGHTER_GREY; // White's perspective
                 builder.append(bgColor);
 
-                if (squares[row][j] != null) {
+                if (squares[row][col] != null) {
                     // For white pieces (red text)
-                    if (squares[row][j].getTeamColor() == ChessGame.TeamColor.WHITE) {
+                    if (squares[row][col].getTeamColor() == ChessGame.TeamColor.WHITE) {
                         builder.append(SET_TEXT_COLOR_RED);
                     }
                     // For black pieces (blue text)
-                    else if (squares[row][j].getTeamColor() == ChessGame.TeamColor.BLACK) {
+                    else if (squares[row][col].getTeamColor() == ChessGame.TeamColor.BLACK) {
                         builder.append(SET_TEXT_COLOR_BLUE);
                     }
-                    builder.append(' ').append(squares[row][j].toString()).append(' ');
+                    builder.append(' ').append(squares[row][col].toString()).append(' ');
                 } else {
                     builder.append("   ");
                 }

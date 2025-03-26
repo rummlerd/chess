@@ -129,6 +129,9 @@ public class ChessClient {
     public String playGame(String... params) throws Exception {
         checkStatus();
         if (params.length >= 2) {
+            if (!params[0].matches("\\d+")) {
+                return "\tinvalid game number";
+            }
             int number = Integer.parseInt(params[0]) - 1;
             int gameID = getGameID(number);
             String playerColor;
