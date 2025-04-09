@@ -140,7 +140,7 @@ public class ChessBoard implements Cloneable {
                 : new String[] {"h", "g", "f", "e", "d", "c", "b", "a"};
 
         // Add extra dark grey background for column labels
-        builder.append("\t").append(SET_TEXT_BOLD).append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_BLACK);
+        builder.append("\t").append(SET_TEXT_BOLD).append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_WHITE);
         builder.append("    ");
         for (String column : columns) {
             builder.append(column).append("  ");
@@ -151,7 +151,7 @@ public class ChessBoard implements Cloneable {
         for (int i = 0; i < 8; i++) {
             // Reverse rows for black's perspective
             int row = fromWhitePerspective ? 7 - i : i;  // White: 8 to 1, Black: 1 to 8
-            builder.append("\t").append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_BLACK).append(' ').append(row + 1).append(' ');
+            builder.append("\t").append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_WHITE).append(' ').append(row + 1).append(' ');
 
             for (int j = 0; j < 8; j++) {
                 int col = fromWhitePerspective ? j : 7 - j;
@@ -175,12 +175,12 @@ public class ChessBoard implements Cloneable {
             }
 
             // End of row
-            builder.append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_BLACK).append(' ').append(row + 1).append(' ');
+            builder.append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_WHITE).append(' ').append(row + 1).append(' ');
             builder.append(RESET_BG_COLOR).append(RESET_TEXT_COLOR).append('\n');
         }
 
         // Add extra dark grey background for column labels at the bottom
-        builder.append("\t").append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_BLACK);
+        builder.append("\t").append(SET_BG_COLOR_DARK_GREY).append(SET_TEXT_COLOR_WHITE);
         builder.append("    ");  // Two spaces before columns
         for (String column : columns) {
             builder.append(column).append("  ");

@@ -30,11 +30,11 @@ public class ChessClient {
                 case "join" -> playGame(params);
                 case "observe" -> observe(params);
                 case "logout" -> logout();
-                case "quit" -> "\tquitting...";
+                case "quit" -> "\tquit";
                 default -> help();
             };
         } catch (Exception e) {
-            return e.getMessage();
+            return "\t" + e.getMessage();
         }
     }
 
@@ -162,6 +162,9 @@ public class ChessClient {
             return "\tplease list games before attempting to observe";
         }
         if (params.length >= 1) {
+            if (!params[0].matches("\\d+")) {
+                return "\tinvalid game number";
+            }
             int number = Integer.parseInt(params[0]) - 1;
             int gameID = getGameID(number);
             return server.drawGame(gameID, authData.authToken(), true);

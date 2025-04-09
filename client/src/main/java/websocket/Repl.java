@@ -14,7 +14,7 @@ public class Repl {
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equals("\tquitting...")) {
+        while (!result.equals("\tquit")) {
             printPrompt();
             String line = scanner.nextLine();
 
@@ -23,7 +23,7 @@ public class Repl {
                 System.out.print(result);
             } catch (Throwable e) {
                 var msg = e.toString();
-                System.out.print(msg);
+                System.out.print("\t" + msg);
             }
         }
     }
