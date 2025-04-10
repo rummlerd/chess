@@ -2,5 +2,6 @@ package websocket;
 
 public enum State {
     LOGGED_IN,
-    LOGGED_OUT
+    LOGGED_OUT,
+    GAMEPLAY
 }

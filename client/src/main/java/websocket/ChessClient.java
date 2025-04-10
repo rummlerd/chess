@@ -4,7 +4,6 @@ import model.GameData;
 import model.AuthData;
 import model.UserData;
 
-import java.net.http.WebSocket;
 import java.util.Arrays;
 import java.util.List;
 
@@ -48,7 +47,7 @@ public class ChessClient {
                         \tquit - playing chess
                         \thelp - with possible commands""";
         }
-        else {
+        else if (status == State.LOGGED_IN) {
             return """
                         \tcreate <NAME> - a game
                         \tlist - games
@@ -57,6 +56,11 @@ public class ChessClient {
                         \tlogout - when you are done
                         \tquit - playing chess
                         \thelp - with possible commands""";
+        } else {
+            return """
+                    \tYou have reached Gameplay UI
+                    \thelp - with possible commands
+                    """;
         }
     }
 
@@ -154,6 +158,8 @@ public class ChessClient {
             }
             server.playGame(gameID, playerColor, authData.authToken());
 
+            // Transition to GAMEPLAY UI
+            enterGamePlay();
             return server.drawGame(gameID, authData.authToken(), playerColor.equals("WHITE"));
         }
         return "\tbad request";
@@ -170,6 +176,9 @@ public class ChessClient {
             }
             int number = Integer.parseInt(params[0]) - 1;
             int gameID = getGameID(number);
+
+            // Transition to GAMEPLAY UI
+            enterGamePlay();
             return server.drawGame(gameID, authData.authToken(), true);
         }
         return "\tbad request";
@@ -206,5 +215,13 @@ public class ChessClient {
         else if (status.equals(State.LOGGED_IN)) {
             throw new Exception("\talready logged in");
         }
+    }
+
+    private void enterGamePlay() {
+        status = State.GAMEPLAY;
+    }
+
+    private void exitGamePlay() {
+        status = State.LOGGED_IN;
     }
 }

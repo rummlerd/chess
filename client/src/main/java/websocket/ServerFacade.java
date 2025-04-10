@@ -56,14 +56,16 @@ public class ServerFacade {
     public void playGame(int gameID, String playerColor, String authToken) throws Exception {
         var path = "/game";
         makeRequest("PUT", path, new GameRequest(playerColor, gameID), null, authToken);
-
-        ws = new WebSocketFacade(serverUrl);
-        ws.connect(authToken, gameID);
     }
 
     public String drawGame(int gameID, String authToken, boolean whitePerspective) throws Exception {
         var path = "/game?id=" + gameID;
         GameData gameData = makeRequest("GET", path, null, GameData.class, authToken);
+
+        // Connect to the WebSocket
+        ws = new WebSocketFacade(serverUrl);
+        ws.connect(authToken, gameID);
+
         if (!whitePerspective) {
             return gameData.game().getBoard().toStringFromBlack();
         }
