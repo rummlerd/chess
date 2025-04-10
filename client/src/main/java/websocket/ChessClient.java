@@ -3,6 +3,8 @@ package websocket;
 import model.GameData;
 import model.AuthData;
 import model.UserData;
+
+import java.net.http.WebSocket;
 import java.util.Arrays;
 import java.util.List;
 
@@ -151,6 +153,7 @@ public class ChessClient {
                 return "\tinvalid color";
             }
             server.playGame(gameID, playerColor, authData.authToken());
+
             return server.drawGame(gameID, authData.authToken(), playerColor.equals("WHITE"));
         }
         return "\tbad request";

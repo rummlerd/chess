@@ -1,15 +1,23 @@
 package server;
 
 import dataaccess.DataAccess;
-import dataaccess.MemoryDataAccess;
 import dataaccess.SqlDataAccess;
 import spark.*;
+import websocket.WebSocketHandler;
 
 public class Server {
+    private final WebSocketHandler webSocketHandler;
+
+    public Server() {
+        webSocketHandler = new WebSocketHandler();
+    }
+
     public int run(int desiredPort) {
         Spark.port(desiredPort);
 
         Spark.staticFiles.location("web");
+
+        Spark.webSocket("/ws", webSocketHandler);
 
         Spark.before((req, res) -> {
             res.type("application/json");  // Set content type globally to JSON

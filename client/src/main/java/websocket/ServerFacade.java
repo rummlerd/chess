@@ -16,6 +16,7 @@ import java.util.List;
 
 public class ServerFacade {
     private final String serverUrl;
+    private WebSocketFacade ws;
 
     public ServerFacade(String serverUrl) {
         this.serverUrl = serverUrl;
@@ -55,6 +56,9 @@ public class ServerFacade {
     public void playGame(int gameID, String playerColor, String authToken) throws Exception {
         var path = "/game";
         makeRequest("PUT", path, new GameRequest(playerColor, gameID), null, authToken);
+
+        ws = new WebSocketFacade(serverUrl);
+        ws.connect(authToken, gameID);
     }
 
     public String drawGame(int gameID, String authToken, boolean whitePerspective) throws Exception {
