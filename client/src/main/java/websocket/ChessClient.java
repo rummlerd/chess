@@ -32,6 +32,7 @@ public class ChessClient {
                 case "observe" -> observe(params);
                 case "logout" -> logout();
                 case "quit" -> "\tquit";
+                case "leave" -> leave();
                 default -> help();
             };
         } catch (Exception e) {
@@ -58,9 +59,12 @@ public class ChessClient {
                         \thelp - with possible commands""";
         } else {
             return """
-                    \tYou have reached Gameplay UI
                     \thelp - with possible commands
-                    """;
+                    \tredraw - the current state of the board
+                    \tleave - the game
+                    \tmove <> <> - this piece to that place
+                    \tresign - from the game
+                    \thighlight <> - all legal moves for this piece""";
         }
     }
 
@@ -182,6 +186,16 @@ public class ChessClient {
             return server.drawGame(gameID, authData.authToken(), true);
         }
         return "\tbad request";
+    }
+
+    public String leave() throws Exception {
+        if (status != State.GAMEPLAY) {
+            return help();
+        } else {
+            server.leave(authData.authToken());
+            exitGamePlay();
+            return "\tleft";
+        }
     }
 
     public State getStatus() {

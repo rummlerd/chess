@@ -33,6 +33,7 @@ public class WebSocketHandler {
 
     private void handleLeave(UserGameCommand command) {
         connections.remove(command.getAuthToken());
+        System.out.println("A websocket connection has been terminated");
     }
 
     private void handleResign(UserGameCommand command) {

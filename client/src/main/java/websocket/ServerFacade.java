@@ -17,6 +17,7 @@ import java.util.List;
 public class ServerFacade {
     private final String serverUrl;
     private WebSocketFacade ws;
+    private int currentGameID = 0;
 
     public ServerFacade(String serverUrl) {
         this.serverUrl = serverUrl;
@@ -65,11 +66,16 @@ public class ServerFacade {
         // Connect to the WebSocket
         ws = new WebSocketFacade(serverUrl);
         ws.connect(authToken, gameID);
+        currentGameID = gameID;
 
         if (!whitePerspective) {
             return gameData.game().getBoard().toStringFromBlack();
         }
         return gameData.game().getBoard().toStringFromWhite();
+    }
+
+    public void leave(String authToken) throws Exception {
+        ws.leave(authToken, currentGameID);
     }
 
     @SuppressWarnings("unchecked")
