@@ -6,6 +6,7 @@ import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
+import websocket.NotificationHandler;
 import websocket.ServerFacade;
 
 import java.util.List;
@@ -27,7 +28,7 @@ public class ServerFacadeTests {
         System.out.println("Started test HTTP server on " + port);
         String serverUrl = "http://localhost:" + port;
 
-        facade = new ServerFacade(serverUrl);
+        facade = new ServerFacade(serverUrl, null);
     }
 
     @AfterAll
