@@ -1,5 +1,6 @@
 package websocket;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -18,9 +19,13 @@ public class ServerFacade {
     private final String serverUrl;
     private WebSocketFacade ws;
     private int currentGameID = 0;
+    private final NotificationHandler notificationHandler;
+    private String userName = null;
+    private ChessGame.TeamColor teamColor = null;
 
-    public ServerFacade(String serverUrl) {
+    public ServerFacade(String serverUrl, NotificationHandler notificationHandler) {
         this.serverUrl = serverUrl;
+        this.notificationHandler = notificationHandler;
     }
 
     public void clearDatabase() throws Exception {
@@ -35,11 +40,13 @@ public class ServerFacade {
 
     public Object login(UserData userData) throws Exception {
         var path = "/session";
+        userName = userData.username();
         return this.makeRequest(path, userData);
     }
 
     public void logout(String authToken) throws Exception {
         var path = "/session";
+        userName = null;
         this.makeRequest("DELETE", path, null, null, authToken);
     }
 
@@ -64,8 +71,8 @@ public class ServerFacade {
         GameData gameData = makeRequest("GET", path, null, GameData.class, authToken);
 
         // Connect to the WebSocket
-        ws = new WebSocketFacade(serverUrl);
-        ws.connect(authToken, gameID);
+        ws = new WebSocketFacade(serverUrl, notificationHandler);
+        ws.connect(authToken, gameID, userName, teamColor);
         currentGameID = gameID;
 
         if (!whitePerspective) {
@@ -145,5 +152,9 @@ public class ServerFacade {
 
     private boolean isSuccessful(int status) {
         return status / 100 == 2;
+    }
+
+    public void setTeamColor(ChessGame.TeamColor color) {
+        teamColor = color;
     }
 }

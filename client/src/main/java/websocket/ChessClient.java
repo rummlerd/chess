@@ -1,5 +1,6 @@
 package websocket;
 
+import chess.ChessGame;
 import model.GameData;
 import model.AuthData;
 import model.UserData;
@@ -12,10 +13,12 @@ public class ChessClient {
     private static State status;
     private AuthData authData;
     private List<httpmessages.GameResult> games;
+    private final NotificationHandler notificationHandler;
 
-    public ChessClient(String serverUrl) {
-        server = new ServerFacade(serverUrl);
+    public ChessClient(String serverUrl, NotificationHandler notificationHandler) {
+        server = new ServerFacade(serverUrl, notificationHandler);
         status = State.LOGGED_OUT;
+        this.notificationHandler = notificationHandler;
     }
 
     public String eval(String input) {
@@ -138,6 +141,7 @@ public class ChessClient {
 
     public String playGame(String... params) throws Exception {
         checkStatus();
+        ChessGame.TeamColor color;
         if (params.length >= 2) {
             if (!params[0].matches("\\d+")) {
                 return "\tinvalid game number";
@@ -150,17 +154,20 @@ public class ChessClient {
                     return "\tcolor already taken";
                 }
                 playerColor = "WHITE";
+                color = ChessGame.TeamColor.WHITE;
             }
             else if (params[1].equals("black")) {
                 if (games.get(number).blackUsername() != null) {
                     return "\tcolor already taken";
                 }
                 playerColor = "BLACK";
+                color = ChessGame.TeamColor.BLACK;
             }
             else {
                 return "\tinvalid color";
             }
             server.playGame(gameID, playerColor, authData.authToken());
+            server.setTeamColor(color);
 
             // Transition to GAMEPLAY UI
             enterGamePlay();

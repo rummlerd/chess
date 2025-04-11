@@ -7,9 +7,14 @@ import websocket.WebSocketHandler;
 
 public class Server {
     private final WebSocketHandler webSocketHandler;
+    private final RouteManager routeManager;
+
 
     public Server() {
-        webSocketHandler = new WebSocketHandler();
+        // Quickly switch between MemoryDataAccess and SqlDataAccess
+        DataAccess dataAccess = new SqlDataAccess();
+        webSocketHandler = new WebSocketHandler(dataAccess);
+        routeManager = new RouteManager(dataAccess);
     }
 
     public int run(int desiredPort) {
@@ -24,9 +29,6 @@ public class Server {
             res.status(200); // Default response status, updated only if error is thrown
         });
 
-        DataAccess dataAccess = new SqlDataAccess(); // Quickly switch between MemoryDataAccess and SqlDataAccess
-
-        RouteManager routeManager = new RouteManager(dataAccess);
         routeManager.setupRoutes();
 
         Spark.awaitInitialization();

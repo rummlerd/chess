@@ -1,6 +1,7 @@
 package websocket;
 
 import org.eclipse.jetty.websocket.api.Session;
+import websocket.messages.ServerMessage;
 
 public class Connection {
     private final Session session;
@@ -25,7 +26,7 @@ public class Connection {
         return gameID;
     }
 
-    public void send(String msg) throws Exception {
-        session.getRemote().sendString(msg);
+    public void send(ServerMessage msg) throws Exception {
+        session.getRemote().sendString(msg.toString());
     }
 }
