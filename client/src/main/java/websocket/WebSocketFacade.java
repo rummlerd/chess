@@ -2,8 +2,6 @@ package websocket;
 
 import chess.ChessGame;
 import com.google.gson.Gson;
-import com.google.gson.JsonObject;
-import com.google.gson.JsonParser;
 import websocket.commands.ConnectCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.LoadGameMessage;

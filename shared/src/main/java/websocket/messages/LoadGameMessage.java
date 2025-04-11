@@ -1,6 +1,5 @@
 package websocket.messages;
 
-import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 

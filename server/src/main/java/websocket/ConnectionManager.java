@@ -4,9 +4,7 @@ import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
 import org.eclipse.jetty.websocket.api.Session;
-import websocket.commands.UserGameCommand;
 import websocket.commands.ConnectCommand;
-import websocket.messages.Notification;
 import websocket.messages.ServerMessage;
 
 public class ConnectionManager {
@@ -26,9 +24,11 @@ public class ConnectionManager {
         var removeList = new ArrayList<Connection>();
         for (var c : connections.values()) {
             if (c.getSession().isOpen()) {
-                if (!c.getAuthToken().equals(excludeAuthToken) && message.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
+                if (!c.getAuthToken().equals(excludeAuthToken) &&
+                        message.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)) {
                     c.send(message);
-                } else if (c.getAuthToken().equals(excludeAuthToken) && message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
+                } else if (c.getAuthToken().equals(excludeAuthToken) &&
+                        message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
                     c.send(message);
                     System.out.println("sending a LOAD_GAME message");
                 }
