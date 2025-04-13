@@ -35,13 +35,13 @@ public class Repl implements NotificationHandler {
     public void notify(ServerMessage message) {
         if (message.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)
                 && message instanceof Notification notification) {
-            System.out.println(notification.message);
+            System.out.println("\n"+ notification.message);
         } else if (message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)
                 && message instanceof LoadGameMessage loadGame) {
             if (loadGame.userName.equals(loadGame.game.blackUsername())) {
-                System.out.println(loadGame.game.game().getBoard().toStringFromBlack());
+                System.out.println("\n"+ loadGame.game.game().getBoard().toStringFromBlack());
             } else {
-                System.out.println(loadGame.game.game().getBoard().toStringFromWhite());
+                System.out.println("\n"+ loadGame.game.game().getBoard().toStringFromWhite());
             }
         }
         printPrompt();

@@ -52,4 +52,9 @@ public class WebSocketFacade extends Endpoint {
         this.session.getBasicRemote().sendText(new Gson().toJson(command));
         this.session.close();
     }
+
+    public void move(String authToken, String startPosition, String endPosition) throws Exception {
+        var command = new MakeMoveCommand(authToken, startPosition, endPosition);
+        this.session.getBasicRemote().sendText(new Gson().toJson(command));
+    }
 }

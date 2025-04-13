@@ -36,6 +36,7 @@ public class ChessClient {
                 case "logout" -> logout();
                 case "quit" -> "\tquit";
                 case "leave" -> leave();
+                case "move" -> move(params);
                 default -> help();
             };
         } catch (Exception e) {
@@ -203,6 +204,21 @@ public class ChessClient {
             exitGamePlay();
             return "\tleft";
         }
+    }
+
+    public String move(String... params) throws Exception {
+        if (status != State.GAMEPLAY) {
+            return help();
+        } else if (params.length >= 2){
+            if (!params[0].matches("^[A-Ha-h][1-8]$")) {
+                return "\tinvalid starting chess position";
+            } else if (!params[1].matches("^[A-Ha-h][1-8]$")) {
+                return "\tinvalid ending chess position";
+            }
+            server.move(authData.authToken(), params[0], params[1]);
+            return null;
+        }
+        return "\tbad request";
     }
 
     public State getStatus() {

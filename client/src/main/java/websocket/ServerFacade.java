@@ -85,6 +85,10 @@ public class ServerFacade {
         ws.leave(authToken, currentGameID);
     }
 
+    public void move(String authToken, String startPosition, String endPosition) throws Exception {
+        ws.move(authToken, startPosition, endPosition);
+    }
+
     @SuppressWarnings("unchecked")
     private <T> T makeRequest(String path, Object request) throws Exception {
         return makeRequest("POST", path, request, (Class<T>) AuthData.class, null); // Call overloaded method with null token
