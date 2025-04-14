@@ -110,6 +110,13 @@ public class WebSocketHandler {
     }
 
     private void handleLeave(UserGameCommand command) throws Exception {
+        GameData game = getValidGame(command);
+
+        String userName = userService.getAuth(command.getAuthToken()).username();
+
+        if (userName.equals(game.whiteUsername()) || userName.equals(game.blackUsername())) {
+            gameService.leaveGame(command.getAuthToken(), command.getGameID());
+        }
         connections.remove(command.getAuthToken());
 
         String message = String.format("%s has left the game", userService.getAuth(command.getAuthToken()).username());

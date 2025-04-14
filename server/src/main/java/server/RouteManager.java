@@ -6,7 +6,6 @@ import com.google.gson.GsonBuilder;
 import dataaccess.DataAccessException;
 import httpmessages.GameRequest;
 import dataaccess.DataAccess;
-import httpmessages.LeaveGameRequest;
 import model.UserData;
 import service.GameService;
 import service.UserService;
@@ -50,7 +49,6 @@ public class RouteManager {
         Spark.get("/game", this::getGame);
         Spark.post("/game", this::createGame);
         Spark.put("/game", this::joinGame);
-        Spark.delete("/game", this::leaveGame);
     }
 
     private Object clearApplication(Request req, Response res) throws DataAccessException {
@@ -106,18 +104,6 @@ public class RouteManager {
         int gameID = joinRequest.getGameID();
 
         gameService.joinGame(authToken, playerColor, gameID);
-        return "{}";
-    }
-
-    private Object leaveGame(Request req, Response res) throws DataAccessException {
-        String authToken = req.headers("authorization");
-        String gameIDString = req.queryParams("id");
-        if (!gameIDString.matches("\\d+")) {
-            throw new DataAccessException("\tinvalid game number");
-        }
-        int gameID = Integer.parseInt(gameIDString);
-
-        gameService.leaveGame(authToken, gameID);
         return "{}";
     }
 }

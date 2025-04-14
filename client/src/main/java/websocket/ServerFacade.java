@@ -6,7 +6,6 @@ import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
 import httpmessages.GameRequest;
-import httpmessages.LeaveGameRequest;
 import model.AuthData;
 import model.GameData;
 import model.UserData;
@@ -83,12 +82,7 @@ public class ServerFacade {
         return gameData.game().getBoard().toStringFromWhite();
     }
 
-    public void leave(boolean observer, String authToken) throws Exception {
-        if (!observer) {
-            var path = "/game?id=" + currentGameID;
-            this.makeRequest("DELETE", path, null, null, authToken);
-        }
-
+    public void leave(String authToken) throws Exception {
         ws.leave(authToken, currentGameID);
     }
 
