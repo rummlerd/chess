@@ -1,5 +1,6 @@
 package websocket;
 
+import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.Notification;
 import websocket.messages.ServerMessage;
@@ -18,7 +19,7 @@ public class Repl implements NotificationHandler {
 
         Scanner scanner = new Scanner(System.in);
         var result = "";
-        while (!result.equals("\tquit")) {
+        while (!"\tquit".equals(result)) {
             printPrompt();
             String line = scanner.nextLine();
 
@@ -33,15 +34,19 @@ public class Repl implements NotificationHandler {
     }
 
     public void notify(ServerMessage message) {
-        if (message.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)
-                && message instanceof Notification notification) {
-            System.out.println("\n"+ notification.message);
-        } else if (message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)
-                && message instanceof LoadGameMessage loadGame) {
-            if (loadGame.userName.equals(loadGame.game.blackUsername())) {
-                System.out.println("\n"+ loadGame.game.game().getBoard().toStringFromBlack());
-            } else {
-                System.out.println("\n"+ loadGame.game.game().getBoard().toStringFromWhite());
+        switch (message) {
+            case Notification notification when message.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION) ->
+                    System.out.println("\n" + notification.message);
+            case LoadGameMessage loadGame when message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME) -> {
+                if (loadGame.userName.equals(loadGame.game.blackUsername())) {
+                    System.out.println("\n" + loadGame.game.game().getBoard().toStringFromBlack());
+                } else {
+                    System.out.println("\n" + loadGame.game.game().getBoard().toStringFromWhite());
+                }
+            }
+            case ErrorMessage errorMessage when message.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR) ->
+                    System.out.println("\n" + errorMessage.errorMessage);
+            default -> {
             }
         }
         printPrompt();

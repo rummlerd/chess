@@ -1,6 +1,7 @@
 package websocket;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -85,8 +86,8 @@ public class ServerFacade {
         ws.leave(authToken, currentGameID);
     }
 
-    public void move(String authToken, String startPosition, String endPosition) throws Exception {
-        ws.move(authToken, startPosition, endPosition);
+    public void move(String authToken, ChessMove move) throws Exception {
+        ws.move(authToken, currentGameID, move, userName);
     }
 
     @SuppressWarnings("unchecked")

@@ -3,8 +3,11 @@ package websocket;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
+import chess.ChessGame;
+import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.ConnectCommand;
+import websocket.messages.LoadGameMessage;
 import websocket.messages.ServerMessage;
 
 public class ConnectionManager {
@@ -12,7 +15,7 @@ public class ConnectionManager {
 
     public synchronized void add(Session session, ConnectCommand cmd) {
         String authToken = cmd.getAuthToken();
-        var connection = new Connection(session, cmd.getAuthToken(), cmd.getGameID());
+        var connection = new Connection(session, cmd.getAuthToken(), cmd.getGameID(), cmd.getUserName());
         connections.put(authToken, connection);
     }
 
@@ -30,7 +33,6 @@ public class ConnectionManager {
                 } else if (c.getAuthToken().equals(excludeAuthToken) &&
                         message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)) {
                     c.send(message);
-                    System.out.println("sending a LOAD_GAME message");
                 }
             } else {
                 removeList.add(c);
@@ -40,6 +42,18 @@ public class ConnectionManager {
         // Clean up any connections that were left open
         for (var c : removeList) {
             connections.remove(c.getAuthToken());
+        }
+    }
+
+    public void reloadBoard(LoadGameMessage loadGame) throws Exception {
+        for (var c : connections.values()) {
+            if (c.getSession().isOpen()) {
+                String userName = c.getUserName();
+                GameData game = loadGame.getGame();
+                LoadGameMessage newLoadGame = new LoadGameMessage(game, userName);
+                System.out.println("username = " + userName);
+                c.send(newLoadGame);
+            }
         }
     }
 }

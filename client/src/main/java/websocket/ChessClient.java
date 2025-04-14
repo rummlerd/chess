@@ -1,6 +1,8 @@
 package websocket;
 
 import chess.ChessGame;
+import chess.ChessMove;
+import chess.ChessPosition;
 import model.GameData;
 import model.AuthData;
 import model.UserData;
@@ -215,10 +217,28 @@ public class ChessClient {
             } else if (!params[1].matches("^[A-Ha-h][1-8]$")) {
                 return "\tinvalid ending chess position";
             }
-            server.move(authData.authToken(), params[0], params[1]);
-            return null;
+            ChessPosition startPosition = stringToPosition(params[0]);
+            ChessPosition endPosition = stringToPosition(params[1]);
+            ChessMove move = new ChessMove(startPosition, endPosition, null);
+            server.move(authData.authToken(), move);
+            return "moved from " + params[0] + " to " + params[1];
         }
         return "\tbad request";
+    }
+
+    public ChessPosition stringToPosition(String position) {
+        if (position == null || !position.matches("^[a-hA-H][1-8]$")) {
+            throw new IllegalArgumentException("Invalid chess position: " + position);
+        }
+
+        // Convert the letter to a column number (a/A = 1, b/B = 2, ..., h/H = 8)
+        char colChar = Character.toLowerCase(position.charAt(0));
+        int col = colChar - 'a' + 1;
+
+        // Convert the digit to an integer (1-8)
+        int row = Character.getNumericValue(position.charAt(1));
+
+        return new ChessPosition(row, col);
     }
 
     public State getStatus() {

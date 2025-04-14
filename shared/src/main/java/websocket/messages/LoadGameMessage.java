@@ -1,5 +1,6 @@
 package websocket.messages;
 
+import chess.ChessGame;
 import com.google.gson.Gson;
 import model.GameData;
 
@@ -11,6 +12,10 @@ public class LoadGameMessage extends ServerMessage {
         super(ServerMessageType.LOAD_GAME);
         this.game = game;
         this.userName = userName;
+    }
+
+    public GameData getGame() {
+        return game;
     }
 
     @Override
