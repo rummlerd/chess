@@ -13,8 +13,12 @@ public class ConnectionKey {
 
     @Override
     public boolean equals(Object o) {
-        if (this == o) return true;
-        if (o == null || getClass() != o.getClass()) return false;
+        if (this == o) {
+            return true;
+        }
+        if (o == null || getClass() != o.getClass()) {
+            return false;
+        }
         ConnectionKey that = (ConnectionKey) o;
         return authToken.equals(that.authToken) && gameID.equals(that.gameID);
     }
