@@ -2,6 +2,7 @@ package websocket;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPosition;
 import com.google.gson.Gson;
 import com.google.gson.JsonObject;
 import com.google.gson.JsonParser;
@@ -79,7 +80,16 @@ public class ServerFacade {
         if (!whitePerspective) {
             return gameData.game().getBoard().toStringFromBlack();
         }
-        return gameData.game().getBoard().toStringFromWhite();
+        return "\trequest sent — waiting for server validation"; //gameData.game().getBoard().toStringFromWhite();
+    }
+
+    public String redraw(AuthData authData) throws Exception {
+        ws.redraw(authData.authToken(), currentGameID);
+        return "\trequest sent — waiting for server validation";
+    }
+
+    public void highlight(String authToken, ChessPosition position) throws Exception {
+        ws.highlight(authToken, currentGameID, position);
     }
 
     public void leave(String authToken) throws Exception {

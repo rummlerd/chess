@@ -1,6 +1,7 @@
 package websocket;
 
 import chess.ChessGame;
+import chess.ChessMove;
 import chess.ChessPosition;
 import chess.InvalidMoveException;
 import com.google.gson.Gson;
@@ -13,10 +14,7 @@ import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
 import org.eclipse.jetty.websocket.api.annotations.WebSocket;
 import service.GameService;
 import service.UserService;
-import websocket.commands.ConnectCommand;
-import websocket.commands.MakeMoveCommand;
-import websocket.commands.ResignCommand;
-import websocket.commands.UserGameCommand;
+import websocket.commands.*;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
 import websocket.messages.Notification;
@@ -24,6 +22,7 @@ import websocket.messages.ServerMessage;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collection;
 import java.util.List;
 
 @WebSocket
@@ -38,7 +37,7 @@ public class WebSocketHandler {
     }
 
     @OnWebSocketMessage
-    public void onMessage(Session session, String msg) {
+    public void onMessage(Session session, String msg) throws IOException {
         try {
             UserGameCommand command = new Gson().fromJson(msg, UserGameCommand.class);
 
@@ -47,15 +46,13 @@ public class WebSocketHandler {
                 case MAKE_MOVE -> handleMove(new Gson().fromJson(msg, MakeMoveCommand.class));
                 case LEAVE -> handleLeave(command);
                 case RESIGN -> handleResign(command);
+                case REDRAW -> handleRedraw(command);
+                case HIGHLIGHT -> handleHighlight(session, new Gson().fromJson(msg, HighlightCommand.class));
             }
         }
         catch (Exception e) {
             ServerMessage error = new ErrorMessage("Error: " + e.getMessage());
-            try {
-                session.getRemote().sendString(error.toString());
-            } catch (IOException io) {
-                io.printStackTrace();
-            }
+            session.getRemote().sendString(error.toString());
         }
     }
 
@@ -74,39 +71,73 @@ public class WebSocketHandler {
 
         ServerMessage notification = new Notification(message);
         ServerMessage loadGame = new LoadGameMessage(game, userName);
-        connections.broadcast(command.getAuthToken(), notification);
-        connections.broadcast(command.getAuthToken(), loadGame);
+        connections.broadcast(command.getAuthToken(), command.getGameID(), loadGame);
+        connections.broadcast(command.getAuthToken(), command.getGameID(), notification);
     }
 
     private void handleMove(MakeMoveCommand command) throws Exception, InvalidMoveException {
-        GameData game = getValidGame(command);
+        GameData gameData = getValidGame(command);
+        ChessGame game = gameData.game();
 
         String userName = userService.getAuth(command.getAuthToken()).username();
+        String whiteUserName = gameData.whiteUsername();
+        String blackUserName = gameData.blackUsername();
 
         ChessGame.TeamColor currentTeamPlayer;
-        if (userName.equals(game.whiteUsername())) {
+        if (userName.equals(whiteUserName)) {
             currentTeamPlayer = ChessGame.TeamColor.WHITE;
         } else {
             currentTeamPlayer = ChessGame.TeamColor.BLACK;
         }
-        if (!game.game().getTeamTurn().equals(currentTeamPlayer)) {
+        if (!game.getTeamTurn().equals(currentTeamPlayer)) {
             throw new Exception("not your turn");
         }
 
-        game.game().makeMove(command.getMove());
-        gameService.updateGame(game.gameID(), game.game());
+        game.makeMove(command.getMove());
+        gameService.updateGame(gameData.gameID(), game);
 
         String startPosition = positionToString(command.getMove().startPosition());
         String endPosition = positionToString(command.getMove().endPosition());
         String message = String.format("%s moved their piece at %s to %s", command.getUserName(), startPosition, endPosition);
-        ServerMessage moveNotification = new Notification(message);
-        LoadGameMessage loadGame = new LoadGameMessage(game, command.getUserName());
-        connections.broadcast(command.getAuthToken(), moveNotification);
-        try {
-            connections.reloadBoard(loadGame);
-        } catch (Exception e) {
-            throw new Exception("Failed to reload board");
+
+        String checkMessage = null;
+        boolean alert = false;
+        if (game.isInCheckmate(ChessGame.TeamColor.WHITE)) {
+            alert = true;
+            checkMessage = String.format("%s is in checkmate, game over", whiteUserName);
+        } else if (game.isInCheckmate(ChessGame.TeamColor.BLACK)) {
+            alert = true;
+            checkMessage = String.format("%s is in checkmate, game over", blackUserName);
+        } else if (game.isInStalemate(ChessGame.TeamColor.WHITE)) {
+            alert = true;
+            checkMessage = String.format("%s is in stalemate, game over", whiteUserName);
+        } else if (game.isInStalemate(ChessGame.TeamColor.BLACK)) {
+            alert = true;
+            checkMessage = String.format("%s is in stalemate, game over", blackUserName);
+        } else if (game.isInCheck(ChessGame.TeamColor.WHITE)) {
+            alert = true;
+            checkMessage = String.format("%s is in check", whiteUserName);
+        } else if (game.isInCheck(ChessGame.TeamColor.BLACK)) {
+            alert = true;
+            checkMessage = String.format("%s is in check", blackUserName);
         }
+        if (alert) {
+            message = message + "\n" + checkMessage;
+        }
+
+        LoadGameMessage loadGame = new LoadGameMessage(gameData, userName);
+        connections.reloadBoard(loadGame, false, userName);
+
+        ServerMessage moveNotification = new Notification(message);
+        connections.broadcast(command.getAuthToken(), command.getGameID(), moveNotification);
+    }
+
+    private void handleRedraw(UserGameCommand command) throws Exception {
+        GameData gameData = getValidGame(command);
+        String userName = userService.getAuth(command.getAuthToken()).username();
+
+        LoadGameMessage loadGame = new LoadGameMessage(gameData, userName);
+        connections.reloadBoard(loadGame, true, userName);
     }
 
     private void handleLeave(UserGameCommand command) throws Exception {
@@ -117,11 +148,11 @@ public class WebSocketHandler {
         if (userName.equals(game.whiteUsername()) || userName.equals(game.blackUsername())) {
             gameService.leaveGame(command.getAuthToken(), command.getGameID());
         }
-        connections.remove(command.getAuthToken());
+        connections.remove(command.getAuthToken(), command.getGameID());
 
         String message = String.format("%s has left the game", userService.getAuth(command.getAuthToken()).username());
         ServerMessage leaveNotification = new Notification(message);
-        connections.broadcast(command.getAuthToken(), leaveNotification);
+        connections.broadcast(command.getAuthToken(), command.getGameID(), leaveNotification);
     }
 
     private void handleResign(UserGameCommand command) throws Exception {
@@ -140,7 +171,26 @@ public class WebSocketHandler {
 
         String message = String.format("%s has resigned from the game", userService.getAuth(command.getAuthToken()).username());
         ServerMessage leaveNotification = new Notification(message);
-        connections.broadcast(null, leaveNotification);
+        connections.broadcast(null, command.getGameID(), leaveNotification);
+    }
+
+    private void handleHighlight(Session session, HighlightCommand command) throws Exception {
+        GameData gameData = getValidGame(command);
+        ChessGame game = gameData.game();
+
+        Collection<ChessMove> validMoves = game.validMoves(command.getPosition());
+        if (!validMoves.isEmpty()) {
+            String userName = userService.getAuth(command.getAuthToken()).username();
+
+            String board;
+            if (userName.equals(gameData.blackUsername())) {
+                board = game.getBoard().buildBoardView(false, validMoves);
+            } else {
+                board = game.getBoard().buildBoardView(true, validMoves);
+            }
+            ServerMessage notification = new Notification(board);
+            session.getRemote().sendString(notification.toString());
+        }
     }
 
     private GameData getValidGame(UserGameCommand command) throws Exception {

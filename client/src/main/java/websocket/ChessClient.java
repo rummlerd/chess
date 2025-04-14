@@ -38,6 +38,8 @@ public class ChessClient {
                 case "leave" -> leave();
                 case "move" -> move(params);
                 case "resign" -> resign();
+                case "redraw" -> redraw();
+                case "highlight" -> highlight(params);
                 default -> help();
             };
         } catch (Exception e) {
@@ -67,9 +69,9 @@ public class ChessClient {
                     \thelp - with possible commands
                     \tredraw - the current state of the board
                     \tleave - the game
-                    \tmove <> <> - this piece to that place
+                    \tmove <piece> <piece> - this piece to that place
                     \tresign - from the game
-                    \thighlight <> - all legal moves for this piece""";
+                    \thighlight <piece> - all legal moves for this piece""";
         }
     }
 
@@ -200,6 +202,27 @@ public class ChessClient {
         return "\tbad request";
     }
 
+    public String redraw() throws Exception {
+        if (status != State.GAMEPLAY) {
+            return help();
+        }
+        return server.redraw(authData);
+    }
+
+    public String highlight(String... params) throws Exception {
+        if (status != State.GAMEPLAY) {
+            return help();
+        } else if (params.length >= 1){
+            if (!params[0].matches("^[A-Ha-h][1-8]$")) {
+                return "\tinvalid chess position";
+            }
+            ChessPosition position = stringToPosition(params[0]);
+            server.highlight(authData.authToken(), position);
+            return "\trequest sent — waiting for server validation";
+        }
+        return "\tbad request";
+    }
+
     public String leave() throws Exception {
         if (status != State.GAMEPLAY) {
             return help();
@@ -230,7 +253,7 @@ public class ChessClient {
             ChessPosition endPosition = stringToPosition(params[1]);
             ChessMove move = new ChessMove(startPosition, endPosition, null);
             server.move(authData.authToken(), move);
-            return "\tMove sent — waiting for server validation.";
+            return "\tmove sent — waiting for server validation";
         }
         return "\tbad request";
     }

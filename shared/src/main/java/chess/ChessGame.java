@@ -411,7 +411,11 @@ public class ChessGame {
         if (isInCheck(teamColor)) {
             return false;
         }
-        return !hasValidMoves(teamColor);
+        boolean stalemate = !hasValidMoves(teamColor);
+        if (stalemate) {
+            endGame();
+        }
+        return stalemate;
     }
 
     private boolean hasValidMoves(TeamColor teamColor) {

@@ -221,8 +221,8 @@ public class ServerFacadeTests {
 
         String boardString = facade.drawGame(gameID, authData.authToken(), true);
 
-        Assertions.assertTrue(boardString.contains("K"), "Board should contain a king");
-        Assertions.assertTrue(boardString.contains("P"), "Board should contain pawns");
+        Assertions.assertTrue(boardString.contains("\trequest sent — waiting for server validation"),
+                "board not actually drawn except by WebSocket, see if correct message was recieved");
     }
 
     @Test

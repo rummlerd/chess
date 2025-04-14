@@ -1,6 +1,7 @@
 package chess;
 
 import java.util.Arrays;
+import java.util.Collection;
 import java.util.Objects;
 import static chess.EscapeSequences.*;
 
@@ -125,14 +126,14 @@ public class ChessBoard implements Cloneable {
     }
 
     public String toStringFromWhite() {
-        return buildBoardView(true);
+        return buildBoardView(true, null);
     }
 
     public String toStringFromBlack() {
-        return buildBoardView(false);
+        return buildBoardView(false, null);
     }
 
-    private String buildBoardView(boolean fromWhitePerspective) {
+    public String buildBoardView(boolean fromWhitePerspective, Collection<ChessMove> highlightedMoves) {
         var builder = new StringBuilder();
 
         // Adjust column labels for white's and black's perspective
@@ -157,6 +158,34 @@ public class ChessBoard implements Cloneable {
                 int col = fromWhitePerspective ? j : 7 - j;
                 // Adjust square colors for white and black perspectives
                 String bgColor = (row + col) % 2 == 0 ? SET_BG_COLOR_BLACK : SET_BG_COLOR_LIGHTER_GREY; // White's perspective
+
+                // Determine if this square is part of a move
+                boolean isStart = false;
+                boolean isEnd = false;
+                if (highlightedMoves != null) {
+                    for (ChessMove move : highlightedMoves) {
+                        int startRow = move.getStartPosition().getRow() - 1;
+                        int startCol = move.getStartPosition().getColumn() - 1;
+                        int endRow = move.getEndPosition().getRow() - 1;
+                        int endCol = move.getEndPosition().getColumn() - 1;
+
+                        if (startRow == row && startCol == col) {
+                            isStart = true;
+                        } else if (endRow == row && endCol == col) {
+                            isEnd = true;
+                        }
+                    }
+                }
+
+                boolean isDarkSquare = (row + col) % 2 == 0;
+
+                // Apply highlight: neon green for start, neon yellow for end, adjusted for square color
+                if (isStart) {
+                    bgColor = isDarkSquare ? SET_BG_COLOR_HIGHLIGHT_GREEN_DARK : SET_BG_COLOR_HIGHLIGHT_GREEN;
+                } else if (isEnd) {
+                    bgColor = isDarkSquare ? SET_BG_COLOR_HIGHLIGHT_YELLOW_DARK : SET_BG_COLOR_HIGHLIGHT_YELLOW;
+                }
+
                 builder.append(bgColor);
 
                 if (squares[row][col] != null) {
