@@ -83,9 +83,11 @@ public class ServerFacade {
         return gameData.game().getBoard().toStringFromWhite();
     }
 
-    public void leave(String authToken) throws Exception {
-        var path = "/game?id=" + currentGameID;
-        this.makeRequest("DELETE", path, null, null, authToken);
+    public void leave(boolean observer, String authToken) throws Exception {
+        if (!observer) {
+            var path = "/game?id=" + currentGameID;
+            this.makeRequest("DELETE", path, null, null, authToken);
+        }
 
         ws.leave(authToken, currentGameID);
     }

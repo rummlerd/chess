@@ -16,6 +16,7 @@ public class ChessClient {
     private AuthData authData;
     private List<httpmessages.GameResult> games;
     private final NotificationHandler notificationHandler;
+    private boolean observer = false;
 
     public ChessClient(String serverUrl, NotificationHandler notificationHandler) {
         server = new ServerFacade(serverUrl, notificationHandler);
@@ -191,6 +192,7 @@ public class ChessClient {
             int number = Integer.parseInt(params[0]) - 1;
             int gameID = getGameID(number);
 
+            observer = true;
             // Transition to GAMEPLAY UI
             enterGamePlay();
             return server.drawGame(gameID, authData.authToken(), true);
@@ -202,8 +204,9 @@ public class ChessClient {
         if (status != State.GAMEPLAY) {
             return help();
         } else {
-            server.leave(authData.authToken());
+            server.leave(observer, authData.authToken());
             exitGamePlay();
+            observer = false;
             return "\tleft";
         }
     }
@@ -280,5 +283,9 @@ public class ChessClient {
 
     private void exitGamePlay() {
         status = State.LOGGED_IN;
+    }
+
+    public boolean isObserver() {
+        return observer;
     }
 }
