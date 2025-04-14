@@ -74,12 +74,9 @@ public class ServerFacade {
 
         // Connect to the WebSocket
         ws = new WebSocketFacade(serverUrl, notificationHandler);
-        ws.connect(authToken, gameID, userName, teamColor);
+        ws.connect(authToken, gameID, teamColor);
         currentGameID = gameID;
 
-        if (!whitePerspective) {
-            return gameData.game().getBoard().toStringFromBlack();
-        }
         return "\trequest sent — waiting for server validation"; //gameData.game().getBoard().toStringFromWhite();
     }
 

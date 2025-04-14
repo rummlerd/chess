@@ -76,6 +76,7 @@ public class ChessClient {
     }
 
     public String login(String... params) throws Exception {
+        isLoggedOut();
         if (params.length >= 2) {
             authData = (AuthData) server.login(new UserData(params[0], params[1], null));
             switchStatus(status.equals(State.LOGGED_OUT));
@@ -85,6 +86,7 @@ public class ChessClient {
     }
 
     public String register(String... params) throws Exception {
+        isLoggedOut();
         if (params.length >= 3) {
             if (params[0].equals("<available>")) {
                 return "\tplease use different username";
@@ -97,7 +99,7 @@ public class ChessClient {
     }
 
     public String logout() throws Exception {
-        checkStatus();
+        isLoggedIn();
         server.logout(authData.authToken());
         authData = new AuthData(null, null);
         switchStatus(status.equals(State.LOGGED_IN));
@@ -105,7 +107,7 @@ public class ChessClient {
     }
 
     public String createGame(String... params) throws Exception {
-        checkStatus();
+        isLoggedIn();
         if (params.length >= 1) {
             GameData gameData = new GameData(0, null, null, params[0], null);
             server.createGame(authData.authToken(), gameData);
@@ -115,7 +117,7 @@ public class ChessClient {
     }
 
     public String listGames() throws Exception {
-        checkStatus();
+        isLoggedIn();
         games = server.listGames(authData.authToken());
         if (games.isEmpty()) {
             return "\tNo games available.\n\tcreate <NAME> - a game";
@@ -144,7 +146,7 @@ public class ChessClient {
     }
 
     public String playGame(String... params) throws Exception {
-        checkStatus();
+        isLoggedIn();
         if (games == null) {
             return "\tplease list games before attempting to join";
         }
@@ -184,7 +186,7 @@ public class ChessClient {
     }
 
     public String observe(String... params) throws Exception {
-        checkStatus();
+        isLoggedIn();
         if (games == null) {
             return "\tplease list games before attempting to observe";
         }
@@ -258,7 +260,7 @@ public class ChessClient {
         return "\tbad request";
     }
 
-    public ChessPosition stringToPosition(String position) {
+    private ChessPosition stringToPosition(String position) {
         if (position == null || !position.matches("^[a-hA-H][1-8]$")) {
             throw new IllegalArgumentException("Invalid chess position: " + position);
         }
@@ -277,9 +279,15 @@ public class ChessClient {
         return status;
     }
 
-    public void checkStatus() throws Exception {
+    private void isLoggedIn() throws Exception {
         if (status == State.LOGGED_OUT) {
             throw new Exception("\tplease log in");
+        }
+    }
+
+    private void isLoggedOut() throws Exception {
+        if (status == State.LOGGED_IN) {
+            throw new Exception("\talready log in");
         }
     }
 

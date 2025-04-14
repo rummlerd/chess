@@ -39,7 +39,6 @@ public class RouteManager {
             }
             Map<String, String> errorBody = Map.of("message", "Error: " + e.getMessage());
             res.body(gson.toJson(errorBody));
-            //res.body("{\"message\": \"Error: " + e.getMessage() + "\"}");
         });
 
         Spark.delete("/db", this::clearApplication);
@@ -77,7 +76,7 @@ public class RouteManager {
         String authToken = req.headers("authorization");
         String gameID = req.queryParams("id");
         if (gameID == null) {
-            return listGames(req, res, authToken);
+            return listGames(authToken);
         } else {
             return getSingleGame(Integer.parseInt(gameID));
         }
@@ -87,7 +86,7 @@ public class RouteManager {
         return gson.toJson(gameService.getGame(gameID));
     }
 
-    private Object listGames(Request req, Response res, String authToken) throws DataAccessException {
+    private Object listGames(String authToken) throws DataAccessException {
         return gson.toJson(Map.of("games", gameService.getAllGames(authToken)));
     }
 

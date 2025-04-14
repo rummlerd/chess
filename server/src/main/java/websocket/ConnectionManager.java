@@ -3,7 +3,6 @@ package websocket;
 import java.util.ArrayList;
 import java.util.concurrent.ConcurrentHashMap;
 
-import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import websocket.commands.ConnectCommand;
 import websocket.messages.LoadGameMessage;
@@ -26,14 +25,14 @@ public class ConnectionManager {
     public void broadcast(String excludeAuthToken, Integer gameID, ServerMessage message) throws Exception {
         var removeList = new ArrayList<Connection>();
         for (var c : connections.values()) {
-            if (c.getSession().isOpen()) {
-                if (!c.getAuthToken().equals(excludeAuthToken) &&
+            if (c.session().isOpen()) {
+                if (!c.authToken().equals(excludeAuthToken) &&
                         message.getServerMessageType().equals(ServerMessage.ServerMessageType.NOTIFICATION)
-                        && c.getGameID().equals(gameID)) {
+                        && c.gameID().equals(gameID)) {
                     c.send(message);
-                } else if (c.getAuthToken().equals(excludeAuthToken) &&
+                } else if (c.authToken().equals(excludeAuthToken) &&
                         message.getServerMessageType().equals(ServerMessage.ServerMessageType.LOAD_GAME)
-                        && c.getGameID().equals(gameID)) {
+                        && c.gameID().equals(gameID)) {
                     c.send(message);
                 }
             } else {
@@ -43,22 +42,22 @@ public class ConnectionManager {
 
         // Clean up any connections that were left open
         for (var c : removeList) {
-            connections.remove(new ConnectionKey(c.getAuthToken(), c.getGameID()));
+            connections.remove(new ConnectionKey(c.authToken(), c.gameID()));
         }
     }
 
     public void reloadBoard(LoadGameMessage loadGame, boolean once, String userName) throws Exception {
         if (once) {
             for (var c : connections.values()) {
-                if (userName.equals(c.getUserName())) {
+                if (userName.equals(c.userName())) {
                     LoadGameMessage newLoadGame = new LoadGameMessage(loadGame.getGame(), userName);
                     c.send(newLoadGame);
                 }
             }
         } else {
             for (var c : connections.values()) {
-                if (c.getSession().isOpen() && c.getGameID().equals(loadGame.getGame().gameID())) {
-                    LoadGameMessage newLoadGame = new LoadGameMessage(loadGame.getGame(), c.getUserName());
+                if (c.session().isOpen() && c.gameID().equals(loadGame.getGame().gameID())) {
+                    LoadGameMessage newLoadGame = new LoadGameMessage(loadGame.getGame(), c.userName());
                     c.send(newLoadGame);
                 }
             }

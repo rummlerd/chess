@@ -36,7 +36,7 @@ public class MoveCalculatorUtils {
                     break;
                 }
 
-                // Continue for multi-step pieces (Queen, Rook, Bishop)
+                // Continue for multiple step pieces (Queen, Rook, Bishop)
                 currentPosition = new ChessPosition(
                         currentPosition.getRow() + direction[0],
                         currentPosition.getColumn() + direction[1]

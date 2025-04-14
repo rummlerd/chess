@@ -43,7 +43,7 @@ public class WebSocketFacade extends Endpoint {
     public void onOpen(Session session, EndpointConfig endpointConfig) {
     }
 
-    public void connect(String authToken, Integer gameID, String userName, ChessGame.TeamColor teamColor) throws Exception {
+    public void connect(String authToken, Integer gameID, ChessGame.TeamColor teamColor) throws Exception {
         var command = new ConnectCommand(authToken, gameID, teamColor);
         this.session.getBasicRemote().sendText(new Gson().toJson(command));
     }

@@ -3,7 +3,7 @@ package websocket.messages;
 import com.google.gson.Gson;
 
 public class Notification extends ServerMessage {
-    public String message;
+    public final String message;
 
     public Notification(String message) {
         super(ServerMessageType.NOTIFICATION);

@@ -12,7 +12,7 @@ public class Main {
 
             var server = new Server();
             server.run(port);
-            port = server.port();
+            server.port();
 
             // Keep main thread alive
             Thread.currentThread().join();

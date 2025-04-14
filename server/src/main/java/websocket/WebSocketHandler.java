@@ -3,11 +3,9 @@ package websocket;
 import chess.ChessGame;
 import chess.ChessMove;
 import chess.ChessPosition;
-import chess.InvalidMoveException;
 import com.google.gson.Gson;
 import dataaccess.DataAccess;
 import dataaccess.DataAccessException;
-import model.AuthData;
 import model.GameData;
 import org.eclipse.jetty.websocket.api.Session;
 import org.eclipse.jetty.websocket.api.annotations.OnWebSocketMessage;
@@ -21,9 +19,7 @@ import websocket.messages.Notification;
 import websocket.messages.ServerMessage;
 
 import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collection;
-import java.util.List;
 
 @WebSocket
 public class WebSocketHandler {
@@ -75,7 +71,7 @@ public class WebSocketHandler {
         connections.broadcast(command.getAuthToken(), command.getGameID(), notification);
     }
 
-    private void handleMove(MakeMoveCommand command) throws Exception, InvalidMoveException {
+    private void handleMove(MakeMoveCommand command) throws Exception {
         GameData gameData = getValidGame(command);
         ChessGame game = gameData.game();
 

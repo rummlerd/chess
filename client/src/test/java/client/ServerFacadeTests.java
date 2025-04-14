@@ -6,7 +6,6 @@ import model.GameData;
 import model.UserData;
 import org.junit.jupiter.api.*;
 import server.Server;
-import websocket.NotificationHandler;
 import websocket.ServerFacade;
 
 import java.util.List;
@@ -222,7 +221,7 @@ public class ServerFacadeTests {
         String boardString = facade.drawGame(gameID, authData.authToken(), true);
 
         Assertions.assertTrue(boardString.contains("\trequest sent — waiting for server validation"),
-                "board not actually drawn except by WebSocket, see if correct message was recieved");
+                "board not actually drawn except by WebSocket, see if correct message was received");
     }
 
     @Test
