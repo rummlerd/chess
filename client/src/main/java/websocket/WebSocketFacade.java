@@ -5,6 +5,7 @@ import chess.ChessMove;
 import com.google.gson.Gson;
 import websocket.commands.ConnectCommand;
 import websocket.commands.MakeMoveCommand;
+import websocket.commands.ResignCommand;
 import websocket.commands.UserGameCommand;
 import websocket.messages.ErrorMessage;
 import websocket.messages.LoadGameMessage;
@@ -45,7 +46,7 @@ public class WebSocketFacade extends Endpoint {
     }
 
     public void connect(String authToken, Integer gameID, String userName, ChessGame.TeamColor teamColor) throws Exception {
-        var command = new ConnectCommand(authToken, gameID, userName, teamColor);
+        var command = new ConnectCommand(authToken, gameID, teamColor);
         this.session.getBasicRemote().sendText(new Gson().toJson(command));
     }
 
@@ -57,6 +58,11 @@ public class WebSocketFacade extends Endpoint {
 
     public void move(String authToken, Integer gameID, ChessMove move, String userName) throws Exception {
         var command = new MakeMoveCommand(authToken, gameID, move, userName);
+        this.session.getBasicRemote().sendText(new Gson().toJson(command));
+    }
+
+    public void resign(String authToken, Integer gameID) throws Exception {
+        var command = new UserGameCommand(UserGameCommand.CommandType.RESIGN, authToken, gameID);
         this.session.getBasicRemote().sendText(new Gson().toJson(command));
     }
 }

@@ -484,4 +484,8 @@ public class ChessGame {
     public void endGame() {
         gameOver = true;
     }
+
+    public boolean isGameOver() {
+        return gameOver;
+    }
 }

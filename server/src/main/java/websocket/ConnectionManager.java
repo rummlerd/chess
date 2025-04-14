@@ -13,9 +13,9 @@ import websocket.messages.ServerMessage;
 public class ConnectionManager {
     public final ConcurrentHashMap<String, Connection> connections = new ConcurrentHashMap<>();
 
-    public synchronized void add(Session session, ConnectCommand cmd) {
+    public synchronized void add(Session session, ConnectCommand cmd, String userName) {
         String authToken = cmd.getAuthToken();
-        var connection = new Connection(session, cmd.getAuthToken(), cmd.getGameID(), cmd.getUserName());
+        var connection = new Connection(session, cmd.getAuthToken(), cmd.getGameID(), userName);
         connections.put(authToken, connection);
     }
 

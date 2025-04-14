@@ -96,6 +96,10 @@ public class ServerFacade {
         ws.move(authToken, currentGameID, move, userName);
     }
 
+    public void resign(String authToken) throws Exception {
+        ws.resign(authToken, currentGameID);
+    }
+
     @SuppressWarnings("unchecked")
     private <T> T makeRequest(String path, Object request) throws Exception {
         return makeRequest("POST", path, request, (Class<T>) AuthData.class, null); // Call overloaded method with null token

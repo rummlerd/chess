@@ -40,6 +40,7 @@ public class ChessClient {
                 case "quit" -> "\tquit";
                 case "leave" -> leave();
                 case "move" -> move(params);
+                case "resign" -> resign();
                 default -> help();
             };
         } catch (Exception e) {
@@ -145,6 +146,9 @@ public class ChessClient {
 
     public String playGame(String... params) throws Exception {
         checkStatus();
+        if (games == null) {
+            return "\tplease list games before attempting to join";
+        }
         ChessGame.TeamColor color;
         if (params.length >= 2) {
             if (!params[0].matches("\\d+")) {
@@ -203,12 +207,19 @@ public class ChessClient {
     public String leave() throws Exception {
         if (status != State.GAMEPLAY) {
             return help();
-        } else {
-            server.leave(observer, authData.authToken());
-            exitGamePlay();
-            observer = false;
-            return "\tleft";
         }
+        server.leave(observer, authData.authToken());
+        exitGamePlay();
+        observer = false;
+        return "\tleft";
+    }
+
+    public String resign() throws Exception {
+        if (status != State.GAMEPLAY) {
+            return help();
+        }
+        server.resign(authData.authToken());
+        return "\tresigned";
     }
 
     public String move(String... params) throws Exception {
