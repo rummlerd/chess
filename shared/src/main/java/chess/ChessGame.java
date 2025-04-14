@@ -213,7 +213,7 @@ public class ChessGame {
             throw new InvalidMoveException("No piece at starting location");
         }
         if (myPiece.getTeamColor() != team) {
-            throw new InvalidMoveException("It is not your turn");
+            throw new InvalidMoveException("That is not your piece");
         }
         if (!validMoves(startPosition).contains(move)) {
             throw new InvalidMoveException("Invalid move");

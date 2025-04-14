@@ -78,13 +78,15 @@ public class WebSocketHandler {
     private void handleMove(Session session, MakeMoveCommand command) throws Exception, InvalidMoveException {
         GameData game = getValidGame(command);
 
+        String userName = userService.getAuth(command.getAuthToken()).username();
+
         ChessGame.TeamColor currentTeamPlayer;
-        if (command.getUserName().equals(game.whiteUsername())) {
+        if (userName.equals(game.whiteUsername())) {
             currentTeamPlayer = ChessGame.TeamColor.WHITE;
         } else {
             currentTeamPlayer = ChessGame.TeamColor.BLACK;
         }
-        if (!currentTeamPlayer.equals(game.game().getTeamTurn())) {
+        if (!game.game().getTeamTurn().equals(currentTeamPlayer)) {
             throw new Exception("not your turn");
         }
 
