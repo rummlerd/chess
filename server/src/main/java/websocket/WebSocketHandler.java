@@ -46,14 +46,8 @@ public class WebSocketHandler {
                 case LEAVE -> handleLeave(command);
                 case RESIGN -> handleResign(command);
             }
-        } catch (InvalidMoveException ime) {
-            try {
-                session.getRemote().sendString(new ErrorMessage("Invalid Move: " + ime.getMessage()).toString());
-            } catch (IOException io) {
-                io.printStackTrace();
-            }
-
-        } catch (Exception e) {
+        }
+        catch (Exception e) {
             ServerMessage error = new ErrorMessage("Error: " + e.getMessage());
             try {
                 session.getRemote().sendString(error.toString());
@@ -83,6 +77,16 @@ public class WebSocketHandler {
 
     private void handleMove(Session session, MakeMoveCommand command) throws Exception, InvalidMoveException {
         GameData game = getValidGame(command);
+
+        ChessGame.TeamColor currentTeamPlayer;
+        if (command.getUserName().equals(game.whiteUsername())) {
+            currentTeamPlayer = ChessGame.TeamColor.WHITE;
+        } else {
+            currentTeamPlayer = ChessGame.TeamColor.BLACK;
+        }
+        if (!currentTeamPlayer.equals(game.game().getTeamTurn())) {
+            throw new Exception("not your turn");
+        }
 
         game.game().makeMove(command.getMove());
         gameService.updateGame(game.gameID(), game.game());
