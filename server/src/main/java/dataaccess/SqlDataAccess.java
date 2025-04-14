@@ -152,6 +152,12 @@ public class SqlDataAccess implements DataAccess {
     }
 
     @Override
+    public void updateGame(int gameID, ChessGame updatedGame) throws DataAccessException {
+        String statement = "UPDATE GameData SET game=? WHERE gameID=?";
+        executeUpdate(statement, updatedGame, gameID);
+    }
+
+    @Override
     public List<GameResult> getAllGames(String authToken) throws DataAccessException {
         getAuth(authToken);
         List<GameResult> gameResults = new ArrayList<>();

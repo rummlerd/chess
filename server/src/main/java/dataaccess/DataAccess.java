@@ -72,6 +72,8 @@ public interface DataAccess {
      */
     GameData getGame(int gameID) throws DataAccessException;
 
+    void updateGame(int gameID, ChessGame updatedGame) throws DataAccessException;
+
     /**
      * @param authToken authorization that the user is signed in
      * @return list of all saved games

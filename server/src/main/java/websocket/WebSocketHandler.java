@@ -80,6 +80,7 @@ public class WebSocketHandler {
             System.out.println(game.game());
             game.game().makeMove(command.getMove());
             System.out.println(game.game());
+            gameService.updateGame(game.gameID(), game.game());
         } catch (InvalidMoveException ex) {
             throw new Exception("Invalid move");
         }

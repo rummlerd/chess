@@ -89,6 +89,21 @@ public class MemoryDataAccess implements DataAccess {
     }
 
     @Override
+    public void updateGame(int gameID, ChessGame updatedGame) throws DataAccessException {
+        GameData existingGame = getGame(gameID); // Throws exception if not found
+
+        GameData updatedGameData = new GameData(
+                existingGame.gameID(),
+                existingGame.whiteUsername(),
+                existingGame.blackUsername(),
+                existingGame.gameName(),
+                updatedGame
+        );
+
+        games.put(gameID, updatedGameData);
+    }
+
+    @Override
     public List<GameResult> getAllGames(String authToken) throws DataAccessException {
         getAuth(authToken);
         List<GameResult> gameResults = new ArrayList<>();
