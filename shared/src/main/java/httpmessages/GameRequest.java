@@ -8,11 +8,16 @@ public class GameRequest {
 
     // Constructor for joinGame handler
     public GameRequest(String playerColor, int gameID) {
-        try {
-            this.playerColor = TeamColor.valueOf(playerColor);
-        } catch (IllegalArgumentException e) {
-            throw new IllegalArgumentException("bad request");
+        if (playerColor == null) {
+            this.playerColor = null;
+        } else {
+            try {
+                this.playerColor = TeamColor.valueOf(playerColor);
+            } catch (IllegalArgumentException e) {
+                throw new IllegalArgumentException("bad request");
+            }
         }
+
         this.gameID = gameID;
     }
 

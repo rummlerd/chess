@@ -158,6 +158,26 @@ public class SqlDataAccess implements DataAccess {
     }
 
     @Override
+    public void removeUserFromGame(String authToken, int gameID) throws DataAccessException {
+        AuthData authData = getAuth(authToken); // validate token and get username
+        GameData game = getGame(gameID); // get the current game state
+
+        String username = authData.username();
+        String statement;
+
+        // Check which side the user occupies and remove them
+        if (username.equals(game.whiteUsername())) {
+            statement = "UPDATE GameData SET whiteUsername=? WHERE gameID=?";
+            executeUpdate(statement, null, gameID);
+        } else if (username.equals(game.blackUsername())) {
+            statement = "UPDATE GameData SET blackUsername=? WHERE gameID=?";
+            executeUpdate(statement, null, gameID);
+        } else {
+            throw new DataAccessException("user is not in the game");
+        }
+    }
+
+    @Override
     public List<GameResult> getAllGames(String authToken) throws DataAccessException {
         getAuth(authToken);
         List<GameResult> gameResults = new ArrayList<>();

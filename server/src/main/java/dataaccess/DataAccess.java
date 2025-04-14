@@ -74,6 +74,8 @@ public interface DataAccess {
 
     void updateGame(int gameID, ChessGame updatedGame) throws DataAccessException;
 
+    void removeUserFromGame(String authToken, int gameID) throws DataAccessException;
+
     /**
      * @param authToken authorization that the user is signed in
      * @return list of all saved games

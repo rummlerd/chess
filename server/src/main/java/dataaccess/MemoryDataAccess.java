@@ -130,4 +130,22 @@ public class MemoryDataAccess implements DataAccess {
             throw new DataAccessException("already taken");
         }
     }
+
+    @Override
+    public void removeUserFromGame(String authToken, int gameID) throws DataAccessException {
+        AuthData authData = getAuth(authToken);
+        GameData game = getGame(gameID);
+
+        String username = authData.username();
+        String white = game.whiteUsername();
+        String black = game.blackUsername();
+
+        if (username.equals(white)) {
+            games.put(gameID, new GameData(gameID, null, black, game.gameName(), game.game()));
+        } else if (username.equals(black)) {
+            games.put(gameID, new GameData(gameID, white, null, game.gameName(), game.game()));
+        } else {
+            throw new DataAccessException("user not part of game");
+        }
+    }
 }

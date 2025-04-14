@@ -34,6 +34,13 @@ public class GameService {
         dataAccess.addUserToGame(authToken, playerColor, gameID);
     }
 
+    public void leaveGame(String authToken, int gameID) throws DataAccessException {
+        if  (gameID < 1000) {
+            throw new DataAccessException("bad request");
+        }
+        dataAccess.removeUserFromGame(authToken, gameID);
+    }
+
     public GameData getGame(int gameID) throws DataAccessException {
         return dataAccess.getGame(gameID);
     }
