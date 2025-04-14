@@ -16,6 +16,7 @@ public class ChessClient {
     private static State status;
     private AuthData authData;
     private List<httpmessages.GameResult> games;
+    private boolean resigning = false;
 
     public ChessClient(String serverUrl, NotificationHandler notificationHandler) {
         server = new ServerFacade(serverUrl, notificationHandler);
@@ -38,13 +39,38 @@ public class ChessClient {
                 case "quit" -> "\tquit";
                 case "leave" -> leave();
                 case "move" -> move(params);
-                case "resign" -> resign();
+                case "resign" -> resignCheck();
                 case "redraw" -> redraw();
                 case "highlight" -> highlight(params);
+                case "yes" -> yes();
+                case "no" -> no();
                 default -> help();
             };
         } catch (Exception e) {
             return "\t" + e.getMessage();
+        }
+    }
+
+    public String resignCheck() {
+        resigning = true;
+        return "\tare you sure you want to resign? [yes|no]";
+    }
+
+    public String yes() throws Exception {
+        if (resigning) {
+            resigning = false;
+            return resign();
+        } else {
+            return help();
+        }
+    }
+
+    public String no() {
+        if (resigning) {
+            resigning = false;
+            return "\tdid not resign";
+        } else {
+            return help();
         }
     }
 
