@@ -51,7 +51,6 @@ public class ConnectionManager {
                 String userName = c.getUserName();
                 GameData game = loadGame.getGame();
                 LoadGameMessage newLoadGame = new LoadGameMessage(game, userName);
-                System.out.println("username = " + userName);
                 c.send(newLoadGame);
             }
         }

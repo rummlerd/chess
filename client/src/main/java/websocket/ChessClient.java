@@ -221,7 +221,7 @@ public class ChessClient {
             ChessPosition endPosition = stringToPosition(params[1]);
             ChessMove move = new ChessMove(startPosition, endPosition, null);
             server.move(authData.authToken(), move);
-            return "moved from " + params[0] + " to " + params[1];
+            return "\tMove sent — waiting for server validation.";
         }
         return "\tbad request";
     }

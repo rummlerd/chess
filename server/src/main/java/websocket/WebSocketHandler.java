@@ -46,6 +46,13 @@ public class WebSocketHandler {
                 case LEAVE -> handleLeave(command);
                 case RESIGN -> handleResign(command);
             }
+        } catch (InvalidMoveException ime) {
+            try {
+                session.getRemote().sendString(new ErrorMessage("Invalid Move: " + ime.getMessage()).toString());
+            } catch (IOException io) {
+                io.printStackTrace();
+            }
+
         } catch (Exception e) {
             ServerMessage error = new ErrorMessage("Error: " + e.getMessage());
             try {
@@ -74,16 +81,12 @@ public class WebSocketHandler {
         connections.broadcast(command.getAuthToken(), loadGame);
     }
 
-    private void handleMove(Session session, MakeMoveCommand command) throws Exception {
+    private void handleMove(Session session, MakeMoveCommand command) throws Exception, InvalidMoveException {
         GameData game = getValidGame(command);
-        try {
-            System.out.println(game.game());
-            game.game().makeMove(command.getMove());
-            System.out.println(game.game());
-            gameService.updateGame(game.gameID(), game.game());
-        } catch (InvalidMoveException ex) {
-            throw new Exception("Invalid move");
-        }
+
+        game.game().makeMove(command.getMove());
+        gameService.updateGame(game.gameID(), game.game());
+
         String startPosition = positionToString(command.getMove().startPosition());
         String endPosition = positionToString(command.getMove().endPosition());
         String message = String.format("%s moved their piece at %s to %s", command.getUserName(), startPosition, endPosition);
@@ -97,23 +100,11 @@ public class WebSocketHandler {
         }
     }
 
-    public String positionToString(ChessPosition position) {
-        int row = position.getRow();  // Should be in range 1–8
-        int col = position.getColumn();  // Should be in range 1–8
-
-        if (row < 1 || row > 8 || col < 1 || col > 8) {
-            throw new IllegalArgumentException("Invalid ChessPosition: " + row + ", " + col);
-        }
-
-        // Convert column number to a letter
-        char colChar = (char) ('a' + col - 1);
-
-        return String.valueOf(colChar) + row;
-    }
-
-    private void handleLeave(UserGameCommand command) {
+    private void handleLeave(UserGameCommand command) throws Exception {
         connections.remove(command.getAuthToken());
-        System.out.println("A websocket connection has been terminated");
+        String message = String.format("%s has left the game", userService.getAuth(command.getAuthToken()).username());
+        ServerMessage leaveNotification = new Notification(message);
+        connections.broadcast(command.getAuthToken(), leaveNotification);
     }
 
     private void handleResign(UserGameCommand command) {
@@ -136,5 +127,19 @@ public class WebSocketHandler {
             throw new Exception("Invalid game ID");
         }
         return game;
+    }
+
+    public String positionToString(ChessPosition position) {
+        int row = position.getRow();  // Should be in range 1–8
+        int col = position.getColumn();  // Should be in range 1–8
+
+        if (row < 1 || row > 8 || col < 1 || col > 8) {
+            throw new IllegalArgumentException("Invalid ChessPosition: " + row + ", " + col);
+        }
+
+        // Convert column number to a letter
+        char colChar = (char) ('a' + col - 1);
+
+        return String.valueOf(colChar) + row;
     }
 }

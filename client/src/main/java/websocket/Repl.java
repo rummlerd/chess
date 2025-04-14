@@ -45,7 +45,7 @@ public class Repl implements NotificationHandler {
                 }
             }
             case ErrorMessage errorMessage when message.getServerMessageType().equals(ServerMessage.ServerMessageType.ERROR) ->
-                    System.out.println("\n" + errorMessage.errorMessage);
+                    System.out.println("\n\t" + errorMessage.errorMessage);
             default -> {
             }
         }
