@@ -2,6 +2,7 @@ package websocket;
 
 import chess.ChessGame;
 import chess.ChessMove;
+import chess.ChessPiece;
 import chess.ChessPosition;
 import model.GameData;
 import model.AuthData;
@@ -69,7 +70,7 @@ public class ChessClient {
                     \thelp - with possible commands
                     \tredraw - the current state of the board
                     \tleave - the game
-                    \tmove <piece> <piece> - this piece to that place
+                    \tmove <piece position> to <end position> and <promotion piece if applicable>
                     \tresign - from the game
                     \thighlight <piece> - all legal moves for this piece""";
         }
@@ -253,11 +254,36 @@ public class ChessClient {
             }
             ChessPosition startPosition = stringToPosition(params[0]);
             ChessPosition endPosition = stringToPosition(params[1]);
-            ChessMove move = new ChessMove(startPosition, endPosition, null);
+            ChessPiece.PieceType promotionPiece;
+            if (params.length >= 3) {
+                promotionPiece = getPromotionPiece(params[2]);
+            } else {
+                promotionPiece = null;
+            }
+            ChessMove move = new ChessMove(startPosition, endPosition, promotionPiece);
             server.move(authData.authToken(), move);
             return "\tmove sent — waiting for server validation";
         }
         return "\tbad request";
+    }
+
+    private ChessPiece.PieceType getPromotionPiece(String input) throws Exception {
+        String pieceStr = input.trim().toLowerCase();
+
+        ChessPiece.PieceType type;
+        if (pieceStr.matches("^(n|knight)$")) {
+            type = ChessPiece.PieceType.KNIGHT;
+        } else if (pieceStr.matches("^(r|rook)$")) {
+            type = ChessPiece.PieceType.ROOK;
+        } else if (pieceStr.matches("^(b|bishop)$")) {
+            type = ChessPiece.PieceType.BISHOP;
+        } else if (pieceStr.matches("^(q|queen)$")) {
+            type = ChessPiece.PieceType.QUEEN;
+        } else {
+            throw new Exception("Invalid promotion piece type");
+        }
+
+        return type;
     }
 
     private ChessPosition stringToPosition(String position) {

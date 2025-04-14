@@ -94,7 +94,7 @@ public class WebSocketHandler {
 
         String startPosition = positionToString(command.getMove().startPosition());
         String endPosition = positionToString(command.getMove().endPosition());
-        String message = String.format("%s moved their piece at %s to %s", command.getUserName(), startPosition, endPosition);
+        String message = String.format("%s moved their piece at %s to %s", userName, startPosition, endPosition);
 
         String checkMessage = null;
         boolean alert = false;
@@ -186,6 +186,8 @@ public class WebSocketHandler {
             }
             ServerMessage notification = new Notification(board);
             session.getRemote().sendString(notification.toString());
+        } else {
+            throw new Exception("no valid moves");
         }
     }
 

@@ -22,7 +22,6 @@ public class ServerFacade {
     private WebSocketFacade ws;
     private int currentGameID = 0;
     private final NotificationHandler notificationHandler;
-    private String userName = null;
     private ChessGame.TeamColor teamColor = null;
 
     public ServerFacade(String serverUrl, NotificationHandler notificationHandler) {
@@ -42,13 +41,11 @@ public class ServerFacade {
 
     public Object login(UserData userData) throws Exception {
         var path = "/session";
-        userName = userData.username();
         return this.makeRequest(path, userData);
     }
 
     public void logout(String authToken) throws Exception {
         var path = "/session";
-        userName = null;
         this.makeRequest("DELETE", path, null, null, authToken);
     }
 
@@ -94,7 +91,7 @@ public class ServerFacade {
     }
 
     public void move(String authToken, ChessMove move) throws Exception {
-        ws.move(authToken, currentGameID, move, userName);
+        ws.move(authToken, currentGameID, move);
     }
 
     public void resign(String authToken) throws Exception {
