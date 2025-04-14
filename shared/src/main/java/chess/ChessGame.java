@@ -18,6 +18,7 @@ public class ChessGame {
     private boolean whiteKingCastle;
     private boolean blackQueenCastle;
     private boolean blackKingCastle;
+    private boolean gameOver = false;
 
     public ChessGame() {
         team = TeamColor.WHITE;
@@ -209,6 +210,9 @@ public class ChessGame {
         ChessPosition startPosition = move.getStartPosition();
         ChessPiece myPiece = board.getPiece(startPosition);
 
+        if (gameOver) {
+            throw new InvalidMoveException("This game is over");
+        }
         if (myPiece == null) {
             throw new InvalidMoveException("No piece at starting location");
         }
@@ -345,7 +349,11 @@ public class ChessGame {
         if (!isInCheck(teamColor)) {
             return false;
         }
-        return !canKingEscape(teamColor) && !canOtherPieceSaveKing(teamColor);
+        boolean checkmate = !canKingEscape(teamColor) && !canOtherPieceSaveKing(teamColor);
+        if (checkmate) {
+            endGame();
+        }
+        return checkmate;
     }
 
     private boolean canKingEscape(TeamColor teamColor) {
@@ -471,5 +479,9 @@ public class ChessGame {
                 ", \nblackQueenCastle=" + blackQueenCastle +
                 ", \nblackKingCastle=" + blackKingCastle +
                 '}';
+    }
+
+    public void endGame() {
+        gameOver = true;
     }
 }
